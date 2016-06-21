@@ -23,21 +23,26 @@ def randomizeRow():
             borders = borders+" "
     return borders
 
-# Grid for game --
-
-mymap="""
+grid="""
 ################################
 #  S                           #
 #"""+randomizeRow()+"""
 #"""+randomizeRow()+"""
 #"""+randomizeRow()+"""
-#                              #
+#"""+randomizeRow()+"""
+#"""+randomizeRow()+"""
 #                              #
 ################################
 """
 
+# Grid for game --
+
+def generateGrid():
+    return grid
+
 # Nengo Network
 model = nengo.Network()
+mymap = generateGrid()
 
 with model:
     pacman = pacman_world.PacmanWorld(mymap)

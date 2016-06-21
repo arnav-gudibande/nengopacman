@@ -4,6 +4,7 @@ import nengo
 import cellular
 import continuous
 import pConfig
+import ghostconfig
 
 class Cell(cellular.Cell):
     food = False
@@ -79,15 +80,12 @@ class GridNode(nengo.Node):
         return svg
 
 class PacmanWorld(nengo.Network):
-    def __init__(self, worldmap,
-                 pacman_speed=20, pacman_rotate=10,
+    def __init__(self, worldmap, pacman_speed = 20, pacman_rotate = 10,
                  ghost_speed=5, ghost_rotate=5,
                  **kwargs):
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
 
-        # self.pacman = continuous.Body()
-        # self.pacman.score = 0
         self.pacman = pConfig.Pacman()
 
         self.ghost_rotate = ghost_rotate
@@ -106,6 +104,8 @@ class PacmanWorld(nengo.Network):
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
             ghost = continuous.Body()
             ghost.color = 'red'
+            # ghost = ghostconfig.Ghost()
+            # ghost.color = 'green'
             self.world.add(ghost, cell=cell, dir=1)
             self.enemies.append(ghost)
 
