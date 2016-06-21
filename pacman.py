@@ -7,13 +7,13 @@ import pacman_world
 #      E - Starting location for enemies
 
 mymap="""
-#######
-#  S  #
-#     #
-#  #  #
-#     #
-#  E  #
-#######
+###############################
+#  S                   E      #
+#              E              #
+#  ##        ##       ##      #
+#                             #
+#                  E          #
+###############################
 """
 
 model = nengo.Network()
