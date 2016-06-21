@@ -1,19 +1,35 @@
 import nengo
 import pacman_world
+from random import randint
 
 # Adjust this to generate new maps.
 # key: # - Wall
 #      S - Starting location for player
 #      E - Starting location for enemies
 
+def randomizeRow():
+    borders = ""
+    for i in range(30):
+        x = randint(0,30)
+        if (x%8)==0:
+            borders = borders+"#"
+        elif (i==29):
+            borders = borders+" #"
+        elif (x==(randint(0,30))):
+            borders = borders+"E"
+        else:
+            borders = borders+" "
+    return borders
+
+
 mymap="""
-###############################
-#  S                   E      #
-#              E              #
-#  ##        ##       ##      #
-#                             #
-#                  E          #
-###############################
+################################
+#  S                           #
+#"""+randomizeRow()+"""
+#"""+randomizeRow()+"""
+#"""+randomizeRow()+"""
+#               E              #
+################################
 """
 
 model = nengo.Network()
