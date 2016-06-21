@@ -102,10 +102,7 @@ class PacmanWorld(nengo.Network):
 
         self.enemies = []
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
-            ghost = continuous.Body()
-            ghost.color = 'red'
-            # ghost = ghostconfig.Ghost()
-            # ghost.color = 'green'
+            ghost = ghostconfig.Ghost()
             self.world.add(ghost, cell=cell, dir=1)
             self.enemies.append(ghost)
 
