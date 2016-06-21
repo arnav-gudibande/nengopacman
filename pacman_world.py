@@ -1,10 +1,9 @@
 import random
-
 import numpy as np
 import nengo
-
 import cellular
 import continuous
+import pConfig
 
 class Cell(cellular.Cell):
     food = False
@@ -25,8 +24,6 @@ class Cell(cellular.Cell):
             self.enemy_start = True
         else:
             self.food = True
-
-
 
 
 class GridNode(nengo.Node):
@@ -89,8 +86,9 @@ class PacmanWorld(nengo.Network):
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
 
-        self.pacman = continuous.Body()
-        self.pacman.score = 0
+        # self.pacman = continuous.Body()
+        # self.pacman.score = 0
+        self.pacman = pConfig.Pacman()
 
         self.ghost_rotate = ghost_rotate
         self.ghost_speed = ghost_speed

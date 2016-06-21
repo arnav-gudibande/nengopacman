@@ -7,6 +7,8 @@ from random import randint
 #      S - Starting location for player
 #      E - Starting location for enemies
 
+# Randomizes grid each time game is played
+
 def randomizeRow():
     borders = ""
     for i in range(30):
@@ -21,6 +23,7 @@ def randomizeRow():
             borders = borders+" "
     return borders
 
+# Grid for game --
 
 mymap="""
 ################################
@@ -28,11 +31,14 @@ mymap="""
 #"""+randomizeRow()+"""
 #"""+randomizeRow()+"""
 #"""+randomizeRow()+"""
-#               E              #
+#                              #
+#                              #
 ################################
 """
 
+# Nengo Network
 model = nengo.Network()
+
 with model:
     pacman = pacman_world.PacmanWorld(mymap)
 
@@ -49,7 +55,6 @@ with model:
 
     # go towards food
     nengo.Connection(food[0], move[1])
-
 
     # sense obstacles
     # - distance to obstacles on left, front-left, front, front-right, and right
