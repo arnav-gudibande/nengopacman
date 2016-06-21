@@ -5,8 +5,7 @@ import cellular
 import continuous
 
 class Ghost(continuous.Body):
-    def __init__(self):
-        color = 'red'
+    color = "green"
 
 
 # Ghost Extensibility

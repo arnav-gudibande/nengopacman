@@ -53,7 +53,8 @@ class GridNode(nengo.Node):
         agents = []
         for agent in world.agents:
             direction = agent.dir * 360.0 / world.directions
-            color = getattr(agent, 'color', 'blue')
+            pacman = pConfig.Pacman()
+            color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
             agent_poly = ('<polygon points="0.25,0.25 -0.25,0.25 0,-0.5"'
