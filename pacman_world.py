@@ -10,6 +10,7 @@ class Cell(cellular.Cell):
     food = False
     pacman_start = False
     enemy_start = False
+
     def color(self):
         if self.wall:
             return 'blue'
