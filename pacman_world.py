@@ -1,4 +1,5 @@
 import random
+from random import randint
 import numpy as np
 import nengo
 import cellular
@@ -39,12 +40,16 @@ class GridNode(nengo.Node):
                 svg._nengo_html_t_ = t
         super(GridNode, self).__init__(svg)
 
+
+
     def generate_svg(self, world):
         cells = []
+
         for i in range(world.width):
             for j in range(world.height):
                 cell = world.get_cell(i, j)
                 color = cell.color
+
                 if callable(color):
                     color = color()
                 if color=="blue":
