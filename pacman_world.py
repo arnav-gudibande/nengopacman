@@ -12,9 +12,9 @@ class Cell(cellular.Cell):
     enemy_start = False
     def color(self):
         if self.wall:
-            return 'black'
+            return 'blue'
         if self.food:
-            return 'yellow'
+            return 'white'
         return None
     def load(self, char):
         if char == '#':
@@ -46,8 +46,11 @@ class GridNode(nengo.Node):
                 color = cell.color
                 if callable(color):
                     color = color()
-                if color is not None:
+                if color=="blue":
                     cells.append('<rect x=%d y=%d width=1 height=1 style="fill:%s"/>' %
+                         (i, j, color))
+                if color=="white" and i!=1 and j!=1:
+                    cells.append('<circle cx=%d cy=%d r=0.1 style="fill:%s"/>' %
                         (i, j, color))
 
         agents = []
@@ -72,7 +75,7 @@ class GridNode(nengo.Node):
                     agents.append(line)
 
 
-        svg = '''<svg width="100%%" height="100%%" viewbox="0 0 %d %d">
+        svg = '''<svg style="background: black" width="100%%" height="100%%" viewbox="0 0 %d %d">
             %s
             %s
             </svg>''' % (world.width, world.height,
