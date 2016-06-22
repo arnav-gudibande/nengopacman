@@ -5,9 +5,8 @@ import cellular
 import continuous
 
 class Ghost(continuous.Body):
-    # Edit Ghost attributes
-    
+
+    # Ghost attributes
     color = "red"
-
-
-# Ghost Extensibility
+    speed = 10
+    rotate = 5

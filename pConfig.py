@@ -5,13 +5,12 @@ import cellular
 import continuous
 
 class Pacman(continuous.Body):
-    # Edit initalizer attributes
+    # Initalizer attributes
     def __init__(self):
         self.score = 0
 
-    # Edit Pacman attributes
-    
+    # Pacman attributes
+    size = 0.35
     color = "yellow"
-
-
-# Pacman Extensibility
+    speed = 20
+    rotate = 10

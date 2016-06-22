@@ -60,14 +60,10 @@ class GridNode(nengo.Node):
             color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
-
-            # agent_poly = ('<circle cx="1" cy="1" r="1" stroke="black" stroke-width="3" fill=%s
-            #    % (color, agent.x+0.5, agent.y+0.5, direction))
-
-            #agent_poly = ('<img src="pac.gif"'
-            agent_poly = ('<circle r="0.35"'
+            s = pConfig.Pacman().size
+            agent_poly = ('<circle r="%f"'
                      ' style="fill:%s" transform="translate(%f,%f) rotate(%f)"/>'
-                     % (color, agent.x+0.5, agent.y+0.5, direction))
+                     % (s, color, agent.x+0.5, agent.y+0.5, direction))
 
             agents.append(agent_poly)
 
@@ -83,7 +79,6 @@ class GridNode(nengo.Node):
                     agents.append(line)
             '''
 
-
         svg = '''<svg style="background: black" width="100%%" height="100%%" viewbox="0 0 %d %d">
             %s
             %s
@@ -93,8 +88,10 @@ class GridNode(nengo.Node):
         return svg
 
 class PacmanWorld(nengo.Network):
-    def __init__(self, worldmap, pacman_speed = 20, pacman_rotate = 10,
-                 ghost_speed=5, ghost_rotate=5,
+    initpConfig = pConfig.Pacman()
+    initgConfig = ghostconfig.Ghost()
+    def __init__(self, worldmap, pacman_speed = initpConfig.speed, pacman_rotate = initpConfig.rotate,
+                 ghost_speed = initgConfig.speed, ghost_rotate=initgConfig.rotate,
                  **kwargs):
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
@@ -191,8 +188,6 @@ class PacmanWorld(nengo.Network):
                     y += dy
                 return x, y
             self.detect_enemy = nengo.Node(detect_enemy)
-
-
 
     def update_ghost(self, ghost):
         dt = 0.001
