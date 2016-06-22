@@ -5,6 +5,8 @@ import cellular
 import continuous
 
 class Ghost(continuous.Body):
+    # Edit Ghost attributes
+    
     color = "red"
 
 

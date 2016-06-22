@@ -60,10 +60,18 @@ class GridNode(nengo.Node):
             color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
-            agent_poly = ('<polygon points="0.25,0.25 -0.25,0.25 0,-0.5"'
+
+            # agent_poly = ('<circle cx="1" cy="1" r="1" stroke="black" stroke-width="3" fill=%s
+            #    % (color, agent.x+0.5, agent.y+0.5, direction))
+
+            #agent_poly = ('<img src="pac.gif"'
+            agent_poly = ('<circle r="0.35"'
                      ' style="fill:%s" transform="translate(%f,%f) rotate(%f)"/>'
                      % (color, agent.x+0.5, agent.y+0.5, direction))
+
             agents.append(agent_poly)
+
+            '''
             if hasattr(agent, 'obstacle_distances'):
                 angles = np.linspace(270, 90, len(agent.obstacle_distances))
                 for i, angle in enumerate(angles):
@@ -73,6 +81,7 @@ class GridNode(nengo.Node):
                             'transform="translate(%f,%f) rotate(%f)"/>'
                             % (x2, y2, agent.x+0.5, agent.y+0.5, direction))
                     agents.append(line)
+            '''
 
 
         svg = '''<svg style="background: black" width="100%%" height="100%%" viewbox="0 0 %d %d">

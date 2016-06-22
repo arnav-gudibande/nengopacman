@@ -5,8 +5,13 @@ import cellular
 import continuous
 
 class Pacman(continuous.Body):
-    color = "yellow"
+    # Edit initalizer attributes
     def __init__(self):
         self.score = 0
+
+    # Edit Pacman attributes
+    
+    color = "yellow"
+
 
 # Pacman Extensibility
