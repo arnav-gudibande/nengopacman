@@ -11,6 +11,7 @@ class Cell(cellular.Cell):
     food = False
     pacman_start = False
     enemy_start = False
+    state = "regular"
 
     def color(self):
         if self.wall:
@@ -28,7 +29,6 @@ class Cell(cellular.Cell):
         else:
             self.food = True
 
-
 class GridNode(nengo.Node):
     def __init__(self, world, dt=0.001):
         def svg(t):
@@ -39,8 +39,6 @@ class GridNode(nengo.Node):
                 svg._nengo_html_ = self.generate_svg(world)
                 svg._nengo_html_t_ = t
         super(GridNode, self).__init__(svg)
-
-
 
     def generate_svg(self, world):
         cells = []
@@ -59,6 +57,7 @@ class GridNode(nengo.Node):
                     cells.append('<circle cx=%d cy=%d r=0.1 style="fill:%s"/>' %
                         (i, j, color))
                 if color=="white" and i!=1 and j!=1 and i%15==0 and j%3==0:
+                    cell.state = "super"
                     cells.append('<circle cx=%d cy=%d r=0.2 style="fill:%s"/>' %
                         (i, j, color))
 
@@ -137,6 +136,8 @@ class PacmanWorld(nengo.Network):
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
                 if self.pacman.cell.food:
+                    if(self.pacman.cell.state=="super"):
+                        print("hit super food")
                     self.pacman.score += 1
                     self.pacman.cell.food = False
                     if self.completion_time is None and self.pacman.score == total:
