@@ -10,7 +10,7 @@ class Pacman(continuous.Body):
         self.score = 0
 
     # Pacman attributes
-    size = 0.35
+    size = 0.37
     color = "yellow"
     speed = 20
     rotate = 10

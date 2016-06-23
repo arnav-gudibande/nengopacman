@@ -58,6 +58,9 @@ class GridNode(nengo.Node):
                 if color=="white" and i!=1 and j!=1:
                     cells.append('<circle cx=%d cy=%d r=0.1 style="fill:%s"/>' %
                         (i, j, color))
+                if color=="white" and i!=1 and j!=1 and i%15==0 and j%3==0:
+                    cells.append('<circle cx=%d cy=%d r=0.2 style="fill:%s"/>' %
+                        (i, j, color))
 
         agents = []
         for agent in world.agents:
