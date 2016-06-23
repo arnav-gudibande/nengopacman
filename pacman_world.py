@@ -5,6 +5,7 @@ import nengo
 import cellular
 import continuous
 import body
+from threading import Timer
 
 global pacman
 pacman = body.Body("pacman", "eating", 0.4, "yellow", 20, 10)
@@ -125,11 +126,18 @@ class PacmanWorld(nengo.Network):
 
                 if self.pacman.cell.food:
                     if(self.pacman.cell.state=="super"):
-                        # Super Food has been eaten
+
+                        def revertColor():
+                            global ghost
+                            ghost.color = "red"
+                            for g in self.enemies:
+                                g.color = "red"
                         global ghost
                         ghost.color = "white"
                         for g in self.enemies:
                             g.color = "white"
+                        t = Timer(5.0, revertColor)
+                        t.start()
 
                     self.pacman.score += 1
                     self.pacman.cell.food = False
