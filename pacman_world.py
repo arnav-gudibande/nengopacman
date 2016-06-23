@@ -132,10 +132,12 @@ class PacmanWorld(nengo.Network):
                             ghost.color = "red"
                             for g in self.enemies:
                                 g.color = "red"
+
                         global ghost
                         ghost.color = "white"
                         for g in self.enemies:
                             g.color = "white"
+
                         t = Timer(5.0, revertColor)
                         t.start()
 

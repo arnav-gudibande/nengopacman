@@ -1,6 +1,8 @@
 import nengo
 import pacman_world
 from random import randint
+import numpy as np
+import random
 
 # Adjust this to generate new maps.
 # key: # - Wall
@@ -43,6 +45,7 @@ def generateGrid():
 # Nengo Network
 model = nengo.Network()
 mymap = generateGrid()
+#mymap = mazeGeneration()
 
 with model:
     pacman = pacman_world.PacmanWorld(mymap)
