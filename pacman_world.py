@@ -7,10 +7,10 @@ import continuous
 import body
 
 global pacman
-pacman = body.Body("pacman", "eating", 0.37, "yellow", 20, 10)
+pacman = body.Body("pacman", "eating", 0.4, "yellow", 20, 10)
 
 global ghost
-ghost = body.Body("ghost", "seeking", 0.37, "red", 10, 5)
+ghost = body.Body("ghost", "seeking", 0.4, "red", 10, 5)
 
 class Cell(cellular.Cell):
     food = False
@@ -125,7 +125,12 @@ class PacmanWorld(nengo.Network):
 
                 if self.pacman.cell.food:
                     if(self.pacman.cell.state=="super"):
-                        print("hit super food")
+                        # Super Food has been eaten
+                        global ghost
+                        ghost.color = "white"
+                        for g in self.enemies:
+                            g.color = "white"
+
                     self.pacman.score += 1
                     self.pacman.cell.food = False
                     if self.completion_time is None and self.pacman.score == total:
