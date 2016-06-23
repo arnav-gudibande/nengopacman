@@ -52,7 +52,6 @@ class GridNode(nengo.Node):
             for j in range(world.height):
                 cell = world.get_cell(i, j)
                 color = cell.color
-
                 if callable(color):
                     color = color()
                 if color=="blue":
@@ -69,8 +68,6 @@ class GridNode(nengo.Node):
         agents = []
         for agent in world.agents:
             direction = agent.dir * 360.0 / world.directions
-            #global pacman
-            #pacman = body.Body("pacman", "eating", 0.37, "yellow", 20, 10)
             color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
@@ -80,18 +77,6 @@ class GridNode(nengo.Node):
                      % (s, color, agent.x+0.5, agent.y+0.5, direction))
 
             agents.append(agent_poly)
-
-            '''
-            if hasattr(agent, 'obstacle_distances'):
-                angles = np.linspace(270, 90, len(agent.obstacle_distances))
-                for i, angle in enumerate(angles):
-                    x2 = agent.obstacle_distances[i]*np.sin(angle*np.pi/180)
-                    y2 = agent.obstacle_distances[i]*np.cos(angle*np.pi/180)
-                    line = ('<line x1="0" y1="0" x2="%f" y2="%f" style="stroke:gray;stroke-width:0.1" '
-                            'transform="translate(%f,%f) rotate(%f)"/>'
-                            % (x2, y2, agent.x+0.5, agent.y+0.5, direction))
-                    agents.append(line)
-            '''
 
         svg = '''<svg style="background: black" width="100%%" height="100%%" viewbox="0 0 %d %d">
             %s
