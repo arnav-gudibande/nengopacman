@@ -4,8 +4,13 @@ import numpy as np
 import nengo
 import cellular
 import continuous
-import pConfig
-import ghostconfig
+import body
+
+global pacman
+pacman = body.Body("pacman", "eating", 0.37, "yellow", 20, 10)
+
+global ghost
+ghost = body.Body("ghost", "seeking", 0.37, "red", 10, 5)
 
 class Cell(cellular.Cell):
     food = False
@@ -64,11 +69,12 @@ class GridNode(nengo.Node):
         agents = []
         for agent in world.agents:
             direction = agent.dir * 360.0 / world.directions
-            pacman = pConfig.Pacman()
+            #global pacman
+            #pacman = body.Body("pacman", "eating", 0.37, "yellow", 20, 10)
             color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
-            s = pConfig.Pacman().size
+            s = pacman.size
             agent_poly = ('<circle r="%f"'
                      ' style="fill:%s" transform="translate(%f,%f) rotate(%f)"/>'
                      % (s, color, agent.x+0.5, agent.y+0.5, direction))
@@ -92,19 +98,16 @@ class GridNode(nengo.Node):
             %s
             </svg>''' % (world.width, world.height,
                          ''.join(cells), ''.join(agents))
-
         return svg
 
 class PacmanWorld(nengo.Network):
-    initpConfig = pConfig.Pacman()
-    initgConfig = ghostconfig.Ghost()
-    def __init__(self, worldmap, pacman_speed = initpConfig.speed, pacman_rotate = initpConfig.rotate,
-                 ghost_speed = initgConfig.speed, ghost_rotate=initgConfig.rotate,
+    def __init__(self, worldmap, pacman_speed = pacman.speed, pacman_rotate = pacman.rotate,
+                 ghost_speed = ghost.speed, ghost_rotate=ghost.rotate,
                  **kwargs):
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
 
-        self.pacman = pConfig.Pacman()
+        self.pacman = pacman
 
         self.ghost_rotate = ghost_rotate
         self.ghost_speed = ghost_speed
@@ -120,9 +123,9 @@ class PacmanWorld(nengo.Network):
 
         self.enemies = []
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
-            ghost = ghostconfig.Ghost()
-            self.world.add(ghost, cell=cell, dir=1)
-            self.enemies.append(ghost)
+            new = body.Body("ghost", "seeking", 0.37, "red", 10, 5)
+            self.world.add(new, cell=cell, dir=1)
+            self.enemies.append(new)
 
         self.completion_time = None
 
