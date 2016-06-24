@@ -8,7 +8,7 @@ import body
 from threading import Timer
 
 global pacman
-pacman = body.Body("pacman", "eating", 1.5, "yellow", 20, 10)
+pacman = body.Body("pacman", "eating", 2, "yellow", 20, 10)
 
 global ghost
 ghost = body.Body("ghost", "seeking", 1, "red", 10, 5)
@@ -63,7 +63,7 @@ class GridNode(nengo.Node):
                         (i, j, color))
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0 and i==20 and j==5:
                     cell.state = "super"
-                    cells.append('<circle cx=%d cy=%d r=0.7 style="fill:%s"/>' %
+                    cells.append('<circle cx=%d cy=%d r=0.85 style="fill:%s"/>' %
                         (i, j, color))
 
         agents = []
