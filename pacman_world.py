@@ -138,8 +138,7 @@ class PacmanWorld(nengo.Network):
                         for g in self.enemies:
                             g.color = "white"
 
-                        t = Timer(5.0, revertColor)
-                        t.start()
+
 
                     self.pacman.score += 1
                     self.pacman.cell.food = False
