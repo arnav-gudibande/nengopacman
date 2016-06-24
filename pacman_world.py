@@ -8,7 +8,7 @@ import body
 from threading import Timer
 
 global pacman
-pacman = body.Body("pacman", "eating", 0.4, "yellow", 20, 10)
+pacman = body.Body("pacman", "eating", 2, "yellow", 20, 10)
 
 global ghost
 ghost = body.Body("ghost", "seeking", 0.4, "red", 10, 5)
@@ -58,12 +58,12 @@ class GridNode(nengo.Node):
                 if color=="blue":
                     cells.append('<rect x=%d y=%d width=1 height=1 style="fill:%s"/>' %
                          (i, j, color))
-                if color=="white" and i!=1 and j!=1:
-                    cells.append('<circle cx=%d cy=%d r=0.1 style="fill:%s"/>' %
+                if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0:
+                    cells.append('<circle cx=%d cy=%d r=0.5 style="fill:%s"/>' %
                         (i, j, color))
                 if color=="white" and i!=1 and j!=1 and i%15==0 and j%3==0:
                     cell.state = "super"
-                    cells.append('<circle cx=%d cy=%d r=0.2 style="fill:%s"/>' %
+                    cells.append('<circle cx=%d cy=%d r=0 style="fill:%s"/>' %
                         (i, j, color))
 
         agents = []
@@ -120,7 +120,7 @@ class PacmanWorld(nengo.Network):
 
             def move(t, x):
                 speed, rotation = x
-                dt = 0.001
+                dt = 0.005
                 self.pacman.turn(rotation * dt * pacman_rotate)
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
@@ -137,8 +137,6 @@ class PacmanWorld(nengo.Network):
                         ghost.color = "white"
                         for g in self.enemies:
                             g.color = "white"
-
-
 
                     self.pacman.score += 1
                     self.pacman.cell.food = False
@@ -202,7 +200,7 @@ class PacmanWorld(nengo.Network):
             self.detect_enemy = nengo.Node(detect_enemy)
 
     def update_ghost(self, ghost):
-        dt = 0.001
+        dt = 0.005
 
         target_dir = ghost.get_direction_to(self.pacman)
 
