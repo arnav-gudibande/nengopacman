@@ -136,7 +136,6 @@ def generateMaze():
     return new
 
 
-
 # Nengo Network
 model = nengo.Network()
 #mymap = generateGrid()
