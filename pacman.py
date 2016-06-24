@@ -127,6 +127,7 @@ def generateMaze():
     new = ""
     for x in range(len(image)):
         for y in range(len(image[0])):
+            if(randint(0,500) == randint(0,500)): new += "E"
             if (image[x][y] == 255): new += " "
             if (image[x][y] == 0): new += "#"
         new += "\n"

@@ -120,7 +120,7 @@ class PacmanWorld(nengo.Network):
 
             def move(t, x):
                 speed, rotation = x
-                dt = 0.005
+                dt = 0.01
                 self.pacman.turn(rotation * dt * pacman_rotate)
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
@@ -200,7 +200,7 @@ class PacmanWorld(nengo.Network):
             self.detect_enemy = nengo.Node(detect_enemy)
 
     def update_ghost(self, ghost):
-        dt = 0.005
+        dt = 0.01
 
         target_dir = ghost.get_direction_to(self.pacman)
 
