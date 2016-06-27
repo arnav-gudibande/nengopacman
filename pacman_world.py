@@ -12,10 +12,10 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 2, "yellow", 200, 70)
+pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
 global ghost
-ghost = body.Player("ghost", "seeking", 0.35, "red", 100, 55)
+ghost = body.Player("ghost", "seeking", 0.35, "red", 40, 15)
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -195,6 +195,7 @@ class PacmanWorld(nengo.Network):
                                     self.world.get_cell(i, j).state = "regular"
 
                     self.pacman.score += 1
+
                     self.pacman.cell.food = False
                     self.pacman.cell.state = "eaten"
 
