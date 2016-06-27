@@ -8,10 +8,10 @@ import body
 from threading import Timer
 
 global pacman
-pacman = body.Body("pacman", "eating", 2, "yellow", 20, 10)
+pacman = body.Player("pacman", "eating", 0.35, "yellow", 20, 10)
 
 global ghost
-ghost = body.Body("ghost", "seeking", 1, "red", 10, 5)
+ghost = body.Player("ghost", "seeking", 1, "red", 10, 5)
 
 class Cell(cellular.Cell):
     food = False
@@ -59,11 +59,11 @@ class GridNode(nengo.Node):
                     cells.append('<rect x=%d y=%d width=1 height=1 style="fill:%s"/>' %
                          (i, j, color))
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0:
-                    cells.append('<circle cx=%d cy=%d r=0.5 style="fill:%s"/>' %
+                    cells.append('<circle cx=%d cy=%d r=0.2 style="fill:%s"/>' %
                         (i, j, color))
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0 and i==20 and j==5:
                     cell.state = "super"
-                    cells.append('<circle cx=%d cy=%d r=0.85 style="fill:%s"/>' %
+                    cells.append('<circle cx=%d cy=%d r=0.25 style="fill:%s"/>' %
                         (i, j, color))
 
         agents = []
@@ -109,7 +109,7 @@ class PacmanWorld(nengo.Network):
 
         self.enemies = []
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
-            new = body.Body("ghost", "seeking", 0.37, "red", 10, 5)
+            new = body.Player("ghost", "seeking", 0.37, "red", 10, 5)
             self.world.add(new, cell=cell, dir=1)
             self.enemies.append(new)
 
@@ -120,7 +120,7 @@ class PacmanWorld(nengo.Network):
 
             def move(t, x):
                 speed, rotation = x
-                dt = 0.009
+                dt = 0.001
                 self.pacman.turn(rotation * dt * pacman_rotate)
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
@@ -130,16 +130,42 @@ class PacmanWorld(nengo.Network):
                         def revertColor():
                             global ghost
                             ghost.color = "red"
+                            global pacman
+                            pacman.state = "eating"
                             for g in self.enemies:
                                 g.color = "red"
 
                         global ghost
                         ghost.color = "white"
+                        global pacman
+                        pacman.state = "seeking"
                         for g in self.enemies:
                             g.color = "white"
 
+                        tx = Timer(5.0, revertColor)
+                        tx.start()
+
+                    def saveCoor():
+                        x = self.pacman.x
+                        y = self.pacman.y
+
+                    def respawnFood():
+                        for i in range(self.world.width):
+                            for j in range(self.world.height):
+                                if(self.world.get_cell(i, j).state == "eaten"):
+                                    self.world.get_cell(i, j).food = True
+                                    self.world.get_cell(i, j).state = "regular"
+
                     self.pacman.score += 1
                     self.pacman.cell.food = False
+                    self.pacman.cell.state = "eaten"
+
+                    tF = Timer(5.0, respawnFood)
+                    tF.start()
+
+                    #Sif(self.pacman.cell.state == "eaten"):
+
+
                     if self.completion_time is None and self.pacman.score == total:
                         self.completion_time = t
 
@@ -200,7 +226,7 @@ class PacmanWorld(nengo.Network):
             self.detect_enemy = nengo.Node(detect_enemy)
 
     def update_ghost(self, ghost):
-        dt = 0.009
+        dt = 0.001
 
         target_dir = ghost.get_direction_to(self.pacman)
 

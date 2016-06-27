@@ -138,8 +138,8 @@ def generateMaze():
 
 # Nengo Network
 model = nengo.Network()
-#mymap = generateGrid()
-mymap = generateMaze()
+mymap = generateGrid()
+#mymap = generateMaze()
 
 with model:
     pacman = pacman_world.PacmanWorld(mymap)

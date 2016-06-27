@@ -4,10 +4,11 @@ import nengo
 import cellular
 import continuous
 
-class Body(continuous.Body):
+class Player(continuous.Body):
 
     def __init__(self, typeBody, state, size, color, speed, rotate):
         setattr(self, 'typeBody', typeBody)
+        setattr(self, 'state', state)
         setattr(self, 'size', size)
         setattr(self, 'color', color)
         setattr(self, 'speed', speed)
