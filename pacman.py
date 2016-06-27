@@ -4,13 +4,6 @@ from random import randint
 import numpy as np
 import random
 
-# Adjust this to generate new maps.
-# key: # - Wall
-#      S - Starting location for player
-#      E - Starting location for enemies
-
-# Randomizes grid each time game is played
-
 def randomizeRow():
     borders = ""
     for i in range(30):
@@ -25,6 +18,7 @@ def randomizeRow():
             borders = borders+" "
     return borders
 
+# Grid Randomizes every time the game is initalized
 grid="""
 ################################
 #  S                           #
@@ -140,6 +134,8 @@ def generateMaze():
 model = nengo.Network()
 mymap = generateGrid()
 #mymap = generateMaze()
+
+#Initliazing the nengo model, network and game map
 
 with model:
     pacman = pacman_world.PacmanWorld(mymap)
