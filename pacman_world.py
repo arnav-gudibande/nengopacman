@@ -12,10 +12,10 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 0.35, "yellow", 20, 10)
+pacman = body.Player("pacman", "eating", 2, "yellow", 200, 70)
 
 global ghost
-ghost = body.Player("ghost", "seeking", 0.35, "red", 10, 5)
+ghost = body.Player("ghost", "seeking", 0.35, "red", 100, 55)
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -75,13 +75,13 @@ class GridNode(nengo.Node):
                          (i, j, color))
                 # If the cell is normal food, then set its appearance to a white circle
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0:
-                    cells.append('<circle cx=%d cy=%d r=0.2 style="fill:%s"/>' %
+                    cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
                 # If the cell is super food, then set its appearance to a larger white circle
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0 and i==20 and j==5:
                     cell.state = "super"
-                    cells.append('<circle cx=%d cy=%d r=0.25 style="fill:%s"/>' %
-                        (i, j, color))
+                    cells.append('<circle cx=%d cy=%d r=0.65 style="fill:%s"/>' %
+                        (i, j, "white"))
 
         # Runs through every agent in the world (ghost & pacman)
         agents = []
@@ -198,8 +198,8 @@ class PacmanWorld(nengo.Network):
                     self.pacman.cell.food = False
                     self.pacman.cell.state = "eaten"
 
-                    tF = Timer(5.0, respawnFood)
-                    tF.start()
+                    #tF = Timer(5.0, respawnFood)
+                    #tF.start()
 
                     #Sif(self.pacman.cell.state == "eaten"):
 
@@ -224,7 +224,7 @@ class PacmanWorld(nengo.Network):
                 score._nengo_html_ = html
             self.score = nengo.Node(score)
 
-            
+
 
             def obstacles(t):
                 angles = np.linspace(-1, 1, 5) + self.pacman.dir

@@ -3,6 +3,7 @@ import pacman_world
 from random import randint
 import numpy as np
 import random
+import re
 
 def randomizeRow():
     borders = ""
@@ -121,9 +122,12 @@ def generateMaze():
     new = ""
     for x in range(len(image)):
         for y in range(len(image[0])):
-            if(randint(0,500) == randint(0,500)): new += "E"
+            if(randint(0,500) == randint(0,500)):
+                new = new[:-1]
+                new += "E"
             if (image[x][y] == 255): new += " "
             if (image[x][y] == 0): new += "#"
+        #if(new.endswith(" ")): new = new[:-2]
         new += "\n"
 
     print(new)
@@ -132,8 +136,8 @@ def generateMaze():
 
 # Nengo Network
 model = nengo.Network()
-mymap = generateGrid()
-#mymap = generateMaze()
+#mymap = generateGrid()
+mymap = generateMaze()
 
 #Initliazing the nengo model, network and game map
 
