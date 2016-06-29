@@ -35,7 +35,6 @@ grid="""
 # Grid for game --
 
 def generateGrid():
-    print(grid)
     return grid
 
 def generateMaze():
@@ -96,7 +95,6 @@ def generateMaze():
             r,c = history.pop()
 
     hashes = ""
-    print(M)
     # Generate the image for display
     for row in range(0,num_rows):
         for col in range(0,num_cols):
@@ -130,7 +128,6 @@ def generateMaze():
         #if(new.endswith(" ")): new = new[:-2]
         new += "\n"
 
-    print(new)
     return new
 
 

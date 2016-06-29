@@ -12,13 +12,19 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
+pacman = body.Player("pacman", "eating", 3, "yellow", 70, 20)
 
 global ghost
 ghost = body.Player("ghost", "seeking", 0.35, "red", 40, 15)
 
-global foodCounter
-foodCounter=0
+global counter
+counter = 0
+
+global row
+row = 0
+
+global col
+col = 0
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -29,7 +35,6 @@ class Cell(cellular.Cell):
     none = False
     enemy_start = False
     state = "regular"
-    availability = "not"
 
     # The Color function sets the color of both the wall and food
     def color(self):
@@ -42,14 +47,28 @@ class Cell(cellular.Cell):
     # The load function runs through the mymap string passed in and initalizes starting positions for the pacman, enemy and food
     def load(self, char):
 
+        global counter
+        counter += 1
+        global row
+        row+=1
+
+        if(row%100==0):
+            global col
+            col+=1
+            global counter
+            counter = 0
         if char == '#':
+            global hashct
             self.wall = True
         elif char == 'S':
             self.pacman_start = True
         elif char == 'E':
             self.enemy_start = True
-        else:
+        elif char == ' ' and counter%5==0 and col%5==0:
+            print(counter)
             self.food = True
+        else:
+            self.space = True
 
 # GridNode sets up the pacman world for visualization
 class GridNode(nengo.Node):
@@ -80,14 +99,12 @@ class GridNode(nengo.Node):
                     cells.append('<rect x=%d y=%d width=1 height=1 style="fill:%s"/>' %
                          (i, j, color))
                 # If the cell is normal food, then set its appearance to a white circle
-                if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0:
-                    cell.availability = "available"
+                if color=="white" and i!=1 and j!=1: #and i%5==0 and j%5==0:
                     cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
                 # If the cell is super food, then set its appearance to a larger white circle
-                if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0 and i==20 and j==5:
+                if color=="white" and i!=1 and j!=1 and i==20 and j==5:
                     cell.state = "super"
-                    cell.availability = "available"
                     cells.append('<circle cx=%d cy=%d r=0.65 style="fill:%s"/>' %
                         (i, j, "white"))
 
@@ -248,18 +265,17 @@ class PacmanWorld(nengo.Network):
                 y = 0
                 i=0
                 for cell in self.world.find_cells(lambda cell:cell.food):
-                    if(cell.availability=="available"):
-                        dir = self.pacman.get_direction_to(cell)
-                        dist = self.pacman.get_distance_to(cell)
-                        rel_dir = dir - self.pacman.dir
-                        strength = 1.0 / dist
+                    dir = self.pacman.get_direction_to(cell)
+                    dist = self.pacman.get_distance_to(cell)
+                    rel_dir = dir - self.pacman.dir
+                    strength = 1.0 / dist
 
-                        dx = np.sin(rel_dir * np.pi / 2) * strength
-                        dy = np.cos(rel_dir * np.pi / 2) * strength
+                    dx = np.sin(rel_dir * np.pi / 2) * strength
+                    dy = np.cos(rel_dir * np.pi / 2) * strength
 
-                        x += dx
-                        y += dy
-                        return x, y
+                    x += dx
+                    y += dy
+                    return x, y
             self.detect_food = nengo.Node(detect_food)
 
             def detect_enemy(t):
