@@ -12,17 +12,17 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 3, "yellow", 70, 20)
+pacman = body.Player("pacman", "eating", 3, "yellow", 50, 20)
 
 global ghost
-ghost = body.Player("ghost", "seeking", 0.35, "red", 40, 15)
+ghost = body.Player("ghost", "seeking", 0.35, "red", 30, 15)
 
+
+# These variables keep track of the row and column count while generating the maze
 global counter
 counter = 0
-
 global row
 row = 0
-
 global col
 col = 0
 
@@ -65,7 +65,6 @@ class Cell(cellular.Cell):
         elif char == 'E':
             self.enemy_start = True
         elif char == ' ' and counter%5==0 and col%5==0:
-            print(counter)
             self.food = True
         else:
             self.space = True
@@ -83,6 +82,9 @@ class GridNode(nengo.Node):
                 svg._nengo_html_t_ = t
         super(GridNode, self).__init__(svg)
 
+    # def randCoor(num):
+
+
     # This function sets up an SVG (used to embed html code in the environment)
     def generate_svg(self, world):
         cells = []
@@ -94,14 +96,17 @@ class GridNode(nengo.Node):
                 color = cell.color
                 if callable(color):
                     color = color()
+
                 # If the cell is a wall, then set its appearance to a blue rectangle
                 if color=="blue":
                     cells.append('<rect x=%d y=%d width=1 height=1 style="fill:%s"/>' %
                          (i, j, color))
+
                 # If the cell is normal food, then set its appearance to a white circle
                 if color=="white" and i!=1 and j!=1: #and i%5==0 and j%5==0:
                     cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
+
                 # If the cell is super food, then set its appearance to a larger white circle
                 if color=="white" and i!=1 and j!=1 and i==20 and j==5:
                     cell.state = "super"
@@ -112,12 +117,14 @@ class GridNode(nengo.Node):
         # Runs through every agent in the world (ghost & pacman)
         agents = []
         for agent in world.agents:
+
             # sets variables like agent direction, color and size
             direction = agent.dir * 360.0 / world.directions
             color = getattr(agent, 'color', pacman.color)
             if callable(color):
                 color = color()
             s = pacman.size
+
             # Uses HTML rendering to setup the agents
             agent_poly = ('<circle r="%f"'
                      ' style="fill:%s" transform="translate(%f,%f) rotate(%f)"/>'
@@ -126,7 +133,6 @@ class GridNode(nengo.Node):
             agents.append(agent_poly)
 
         # Sets up the environment as a HTML SVG
-
         svg = '''<svg style="background: black" width="100%%" height="100%%" viewbox="0 0 %d %d">
             %s
             %s
@@ -140,22 +146,20 @@ class PacmanWorld(nengo.Network):
     def __init__(self, worldmap, pacman_speed = pacman.speed, pacman_rotate = pacman.rotate,
                  ghost_speed = ghost.speed, ghost_rotate=ghost.rotate,
                  **kwargs):
+
         # Initializes PacmanWorld using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
-
         self.pacman = pacman
-
         self.ghost_rotate = ghost_rotate
         self.ghost_speed = ghost_speed
 
+        # Init for starting positions of the pacman and for food, etc.
         starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
         if len(starting) == 0:
             starting = list(self.world.find_cells(lambda cell: cell.food))
         cell = random.choice(starting)
-
         total = len(list(self.world.find_cells(lambda cell: cell.food)))
-
         self.world.add(self.pacman, cell=cell, dir=3)
 
         # Adds a random amount of ghost enemies to the world
@@ -164,9 +168,9 @@ class PacmanWorld(nengo.Network):
             new = body.Player("ghost", "seeking", 0.37, "red", 10, 5)
             self.world.add(new, cell=cell, dir=1)
             self.enemies.append(new)
-
         self.completion_time = None
 
+        # Sets up environment for the GridNode (this includes the nodes for obstacles and food)
         with self:
             self.environment = GridNode(self.world)
 
@@ -182,13 +186,16 @@ class PacmanWorld(nengo.Network):
 
                 # If pacman moves into a cell containing food...
                 if self.pacman.cell.food:
+
                     # If pacman eats a super food...
                     if(self.pacman.cell.state=="super"):
 
                         def revertColor():
+
                             # Turns ghosts to their orginal state
                             global ghost
                             ghost.color = "red"
+
                             # Sets the pacman's state to "eating"
                             global pacman
                             pacman.state = "eating"
@@ -198,6 +205,7 @@ class PacmanWorld(nengo.Network):
                         # Ghosts turn white when pacman eats a super food
                         global ghost
                         ghost.color = "white"
+
                         # Pacman's state becomes "seeking"
                         global pacman
                         pacman.state = "seeking"
@@ -209,38 +217,18 @@ class PacmanWorld(nengo.Network):
                         tx = Timer(5.0, revertColor)
                         tx.start()
 
-                    def saveCoor():
-                        x = self.pacman.x
-                        y = self.pacman.y
 
-                    def respawnFood():
-                        for i in range(self.world.width):
-                            for j in range(self.world.height):
-                                if(self.world.get_cell(i, j).state == "eaten"):
-                                    self.world.get_cell(i, j).food = True
-                                    self.world.get_cell(i, j).state = "regular"
-
+                    # Adds to the score and updates ghosts
                     self.pacman.score += 1
-
                     self.pacman.cell.food = False
-                    self.pacman.cell.state = "eaten"
-
-                    #tF = Timer(5.0, respawnFood)
-                    #tF.start()
-
-                    #Sif(self.pacman.cell.state == "eaten"):
-
-
                     if self.completion_time is None and self.pacman.score == total:
                         self.completion_time = t
 
                 for ghost in self.enemies:
                     self.update_ghost(ghost)
-
             self.move = nengo.Node(move, size_in=2)
 
             # The score is kept track of using an html rendering
-
             def score(t):
                 html = '<h1>%d / %d</h1>' % (self.pacman.score, total)
                 if self.completion_time is not None:
@@ -251,8 +239,7 @@ class PacmanWorld(nengo.Network):
                 score._nengo_html_ = html
             self.score = nengo.Node(score)
 
-
-
+            # Sets up the node for the obstacles (this factors in angles and distances towards respective obstacles)
             def obstacles(t):
                 angles = np.linspace(-1, 1, 5) + self.pacman.dir
                 angles = angles % self.world.directions
@@ -260,10 +247,12 @@ class PacmanWorld(nengo.Network):
                 return self.pacman.obstacle_distances
             self.obstacles = nengo.Node(obstacles)
 
+            # Sets up the node for the food (factors in amount of food in an area and its relative strength, distance, etc)
             def detect_food(t):
                 x = 0
                 y = 0
-                i=0
+
+                # Runs through the total number of cells in the world and calculates strength and relative distance for each one
                 for cell in self.world.find_cells(lambda cell:cell.food):
                     dir = self.pacman.get_direction_to(cell)
                     dist = self.pacman.get_distance_to(cell)
@@ -278,9 +267,12 @@ class PacmanWorld(nengo.Network):
                     return x, y
             self.detect_food = nengo.Node(detect_food)
 
+            # Sets up the node for the enemies (factors in number of enemies in an area and their relative strength, distance, etc.)
             def detect_enemy(t):
                 x = 0
                 y = 0
+
+                # Runs through the total number of ghosts in the world and calculates strength and relative distance for each one
                 for ghost in self.enemies:
                     dir = self.pacman.get_direction_to(ghost)
                     dist = self.pacman.get_distance_to(ghost)
@@ -295,29 +287,31 @@ class PacmanWorld(nengo.Network):
                 return x, y
             self.detect_enemy = nengo.Node(detect_enemy)
 
+    # Updates the ghost's position every 0.001 second
     def update_ghost(self, ghost):
         dt = 0.001
-
         target_dir = ghost.get_direction_to(self.pacman)
 
+        # Factors in target distance and calls the turn and go_forward functions in that direction
         theta = ghost.dir - target_dir
         while theta > 2: theta -= 4
         while theta < -2: theta += 4
-
         ghost.turn(-theta * dt * self.ghost_rotate)
         ghost.go_forward(self.ghost_speed * dt)
-
         if ghost.get_distance_to(self.pacman) < 0.5:
             self.reset()
 
+    # Resets the pacman's position after it loses
     def reset(self):
         self.pacman.score = 0
 
+        # Runs through the rows in the world and reinializes cells
         for row in self.world.grid:
             for cell in row:
                 if not (cell.wall or cell.pacman_start or cell.enemy_start):
                     cell.food = True
 
+        # reinializes the starting position of the pacman
         starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
         if len(starting) == 0:
             starting = list(self.world.find_cells(lambda cell: cell.food))
