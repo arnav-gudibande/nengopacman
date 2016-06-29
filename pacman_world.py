@@ -17,14 +17,19 @@ pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 global ghost
 ghost = body.Player("ghost", "seeking", 0.35, "red", 40, 15)
 
+global foodCounter
+foodCounter=0
+
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
 
     # These are the inital states of the food, pacman start and enemy start booleans
     food = False
     pacman_start = False
+    none = False
     enemy_start = False
     state = "regular"
+    availability = "not"
 
     # The Color function sets the color of both the wall and food
     def color(self):
@@ -36,6 +41,7 @@ class Cell(cellular.Cell):
 
     # The load function runs through the mymap string passed in and initalizes starting positions for the pacman, enemy and food
     def load(self, char):
+
         if char == '#':
             self.wall = True
         elif char == 'S':
@@ -75,13 +81,16 @@ class GridNode(nengo.Node):
                          (i, j, color))
                 # If the cell is normal food, then set its appearance to a white circle
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0:
+                    cell.availability = "available"
                     cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
                 # If the cell is super food, then set its appearance to a larger white circle
                 if color=="white" and i!=1 and j!=1 and i%5==0 and j%5==0 and i==20 and j==5:
                     cell.state = "super"
+                    cell.availability = "available"
                     cells.append('<circle cx=%d cy=%d r=0.65 style="fill:%s"/>' %
                         (i, j, "white"))
+
 
         # Runs through every agent in the world (ghost & pacman)
         agents = []
@@ -237,18 +246,20 @@ class PacmanWorld(nengo.Network):
             def detect_food(t):
                 x = 0
                 y = 0
+                i=0
                 for cell in self.world.find_cells(lambda cell:cell.food):
-                    dir = self.pacman.get_direction_to(cell)
-                    dist = self.pacman.get_distance_to(cell)
-                    rel_dir = dir - self.pacman.dir
-                    strength = 1.0 / dist
+                    if(cell.availability=="available"):
+                        dir = self.pacman.get_direction_to(cell)
+                        dist = self.pacman.get_distance_to(cell)
+                        rel_dir = dir - self.pacman.dir
+                        strength = 1.0 / dist
 
-                    dx = np.sin(rel_dir * np.pi / 2) * strength
-                    dy = np.cos(rel_dir * np.pi / 2) * strength
+                        dx = np.sin(rel_dir * np.pi / 2) * strength
+                        dy = np.cos(rel_dir * np.pi / 2) * strength
 
-                    x += dx
-                    y += dy
-                return x, y
+                        x += dx
+                        y += dy
+                        return x, y
             self.detect_food = nengo.Node(detect_food)
 
             def detect_enemy(t):
