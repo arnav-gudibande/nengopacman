@@ -93,8 +93,8 @@ def generateMaze():
             if(randint(0,500) == randint(0,500)):
                 eC+=1
                 new = new[:-1]
-                if(eC<=4): new += " "
-                elif(eC>4): new += " "
+                if(eC<=3): new += "E"
+                elif(eC>3): new += " "
             if (image[x][y] == 255): new += " "
             if (image[x][y] == 0): new += "#"
         new += "\n"
@@ -130,8 +130,8 @@ with model:
     # sense obstacles
     # - distance to obstacles on left, front-left, front, front-right, and right
     # - maximum distance is 4
-    obstacles = nengo.Ensemble(n_neurons=300, dimensions=3, radius=4)
-    nengo.Connection(pacman.obstacles[[1, 2, 3]], obstacles, transform=0.5)
+    obstacles = nengo.Ensemble(n_neurons=100, dimensions=3, radius=4)
+    nengo.Connection(pacman.obstacles[[1, 2, 3]], obstacles, transform=0.5, synapse = 0)
 
     # turn away from walls
     def avoid(x):
@@ -144,12 +144,12 @@ with model:
     nengo.Connection(obstacles, move[0], function=ahead)
 
     # detect enemies
-    enemy = nengo.Ensemble(n_neurons=100, dimensions=2)
-    #nengo.Connection(pacman.detect_enemy, enemy)
+    enemy = nengo.Ensemble(n_neurons=50, dimensions=2)
+    nengo.Connection(pacman.detect_enemy, enemy)
 
     # run away from enemies
     # - angle is the direction to the enemies
     # - radius is the strength (1.0/distance)
     def run_away(x):
-        return -2*x[1], -2*x[0]
-    #nengo.Connection(enemy, move, function=run_away)
+        return -1*x[1], -1*x[0]
+    nengo.Connection(enemy, move, function=run_away)
