@@ -1,5 +1,6 @@
 import nengo
 import pacman_world
+reload(pacman_world)
 from random import randint
 import numpy as np
 import random
@@ -152,14 +153,16 @@ with model:
     food = nengo.Ensemble(n_neurons=100, dimensions=2)
     nengo.Connection(pacman.detect_food, food)
 
-    # go towards food
-    nengo.Connection(food[0], move[1])
+    # turn towards food
+    nengo.Connection(food[0], move[1], transform=4)
+    # move towards food
+    nengo.Connection(food[1], move[0], transform=3)
 
     # sense obstacles
     # - distance to obstacles on left, front-left, front, front-right, and right
     # - maximum distance is 4
     obstacles = nengo.Ensemble(n_neurons=300, dimensions=3, radius=4)
-    nengo.Connection(pacman.obstacles[[1, 2, 3]], obstacles)
+    nengo.Connection(pacman.obstacles[[1, 2, 3]], obstacles, transform=0.5)
 
     # turn away from walls
     def avoid(x):
@@ -179,5 +182,5 @@ with model:
     # - angle is the direction to the enemies
     # - radius is the strength (1.0/distance)
     def run_away(x):
-        return -2*x[1], -2*x[0]
+        return -1*x[1], -2*x[0]
     nengo.Connection(enemy, move, function=run_away)

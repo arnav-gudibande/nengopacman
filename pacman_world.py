@@ -12,10 +12,10 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 3, "yellow", 50, 20)
+pacman = body.Player("pacman", "eating", 2.5, "yellow", 100, 20)
 
 global ghost
-ghost = body.Player("ghost", "seeking", 0.35, "red", 30, 15)
+ghost = body.Player("ghost", "seeking", 0.35, "red", 10, 10)
 
 
 # These variables keep track of the row and column count while generating the maze
@@ -72,6 +72,7 @@ class Cell(cellular.Cell):
 # GridNode sets up the pacman world for visualization
 class GridNode(nengo.Node):
     def __init__(self, world, dt=0.001):
+
         # The initalizer sets up the html layout for display
         def svg(t):
             last_t = getattr(svg, '_nengo_html_t_', None)
@@ -82,8 +83,11 @@ class GridNode(nengo.Node):
                 svg._nengo_html_t_ = t
         super(GridNode, self).__init__(svg)
 
-    # def randCoor(num):
-
+    # This function generates pseudo-random numbers that are divisible by 5
+    def randCoor(num):
+        x = (randint(0,19)) * 5
+        y = (randint(0,5)) * 5
+        return x, y
 
     # This function sets up an SVG (used to embed html code in the environment)
     def generate_svg(self, world):
@@ -243,7 +247,7 @@ class PacmanWorld(nengo.Network):
             def obstacles(t):
                 angles = np.linspace(-1, 1, 5) + self.pacman.dir
                 angles = angles % self.world.directions
-                self.pacman.obstacle_distances = [self.pacman.detect(d, max_distance=4)[0] for d in angles]
+                self.pacman.obstacle_distances = [self.pacman.detect(d, max_distance=4*2)[0] for d in angles]
                 return self.pacman.obstacle_distances
             self.obstacles = nengo.Node(obstacles)
 
@@ -257,6 +261,8 @@ class PacmanWorld(nengo.Network):
                     dir = self.pacman.get_direction_to(cell)
                     dist = self.pacman.get_distance_to(cell)
                     rel_dir = dir - self.pacman.dir
+                    if dist > 5: continue
+
                     strength = 1.0 / dist
 
                     dx = np.sin(rel_dir * np.pi / 2) * strength
@@ -264,7 +270,7 @@ class PacmanWorld(nengo.Network):
 
                     x += dx
                     y += dy
-                    return x, y
+                return x, y
             self.detect_food = nengo.Node(detect_food)
 
             # Sets up the node for the enemies (factors in number of enemies in an area and their relative strength, distance, etc.)
@@ -277,7 +283,7 @@ class PacmanWorld(nengo.Network):
                     dir = self.pacman.get_direction_to(ghost)
                     dist = self.pacman.get_distance_to(ghost)
                     rel_dir = dir - self.pacman.dir
-                    strength = 1.0 / dist
+                    strength = 10.0 / dist
 
                     dx = np.sin(rel_dir * np.pi / 2) * strength
                     dy = np.cos(rel_dir * np.pi / 2) * strength
@@ -290,6 +296,13 @@ class PacmanWorld(nengo.Network):
     # Updates the ghost's position every 0.001 second
     def update_ghost(self, ghost):
         dt = 0.001
+
+        angles = np.linspace(-1, 1, 5) + ghost.dir
+        angles = angles % self.world.directions
+        obstacle_distances = [ghost.detect(d, max_distance=4*2)[0] for d in angles]
+        ghost.turn((obstacle_distances[1]-obstacle_distances[3])*-2 * dt * self.ghost_rotate)
+        ghost.go_forward((obstacle_distances[2]-0.5)*2*self.ghost_speed * dt)
+
         target_dir = ghost.get_direction_to(self.pacman)
 
         # Factors in target distance and calls the turn and go_forward functions in that direction
