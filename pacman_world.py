@@ -12,7 +12,7 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 global pacman
-pacman = body.Player("pacman", "eating", 2.5, "yellow", 100, 20)
+pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
 global ghost
 ghost = body.Player("ghost", "seeking", 0.35, "red", 10, 10)
@@ -25,6 +25,12 @@ global row
 row = 0
 global col
 col = 0
+
+# This function generates pseudo-random numbers that are divisible by 5
+def randCoor():
+    x = (randint(0,19)) * 5
+    y = (randint(0,5)) * 5
+    return x, y
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -83,16 +89,10 @@ class GridNode(nengo.Node):
                 svg._nengo_html_t_ = t
         super(GridNode, self).__init__(svg)
 
-    # This function generates pseudo-random numbers that are divisible by 5
-    def randCoor(num):
-        x = (randint(0,19)) * 5
-        y = (randint(0,5)) * 5
-        return x, y
-
     # This function sets up an SVG (used to embed html code in the environment)
     def generate_svg(self, world):
         cells = []
-
+        xC, yC = randCoor()
         # Runs through every cell in the world (walls & food)
         for i in range(world.width):
             for j in range(world.height):
@@ -107,15 +107,17 @@ class GridNode(nengo.Node):
                          (i, j, color))
 
                 # If the cell is normal food, then set its appearance to a white circle
-                if color=="white" and i!=1 and j!=1: #and i%5==0 and j%5==0:
+                if color=="white" and i!=1 and j!=1:
+                    print(str(i) + ", " + str(j))
                     cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
 
                 # If the cell is super food, then set its appearance to a larger white circle
-                if color=="white" and i!=1 and j!=1 and i==20 and j==5:
+
+                if color=="white" and i!=1 and j!=1 and i==84 and j==25:
                     cell.state = "super"
-                    cells.append('<circle cx=%d cy=%d r=0.65 style="fill:%s"/>' %
-                        (i, j, "white"))
+                    cells.append('<circle cx=%d cy=%d r=0.55 style="fill:%s"/>' %
+                        (i, j, "orange"))
 
 
         # Runs through every agent in the world (ghost & pacman)
@@ -297,6 +299,7 @@ class PacmanWorld(nengo.Network):
     def update_ghost(self, ghost):
         dt = 0.001
 
+        #
         angles = np.linspace(-1, 1, 5) + ghost.dir
         angles = angles % self.world.directions
         obstacle_distances = [ghost.detect(d, max_distance=4*2)[0] for d in angles]

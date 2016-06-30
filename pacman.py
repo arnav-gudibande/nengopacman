@@ -6,38 +6,6 @@ import numpy as np
 import random
 import re
 
-def randomizeRow():
-    borders = ""
-    for i in range(30):
-        x = randint(0,30)
-        if (x%8)==0:
-            borders = borders+"#"
-        elif (i==29):
-            borders = borders+" #"
-        elif (x==(randint(0,30))):
-            borders = borders+"E"
-        else:
-            borders = borders+" "
-    return borders
-
-# Grid Randomizes every time the game is initalized
-grid="""
-################################
-#  S                           #
-#"""+randomizeRow()+"""
-#"""+randomizeRow()+"""
-#"""+randomizeRow()+"""
-#"""+randomizeRow()+"""
-#"""+randomizeRow()+"""
-#                              #
-################################
-"""
-
-# Grid for game --
-
-def generateGrid():
-    return grid
-
 def generateMaze():
     num_rows = 3 # number of rows
     num_cols = 10 # number of columns
@@ -119,14 +87,16 @@ def generateMaze():
                     hashes += "#"
 
     new = ""
+    eC=0
     for x in range(len(image)):
         for y in range(len(image[0])):
             if(randint(0,500) == randint(0,500)):
+                eC+=1
                 new = new[:-1]
-                new += "E"
+                if(eC<=4): new += " "
+                elif(eC>4): new += " "
             if (image[x][y] == 255): new += " "
             if (image[x][y] == 0): new += "#"
-        #if(new.endswith(" ")): new = new[:-2]
         new += "\n"
 
     return new
@@ -134,10 +104,9 @@ def generateMaze():
 
 # Nengo Network
 model = nengo.Network()
-#mymap = generateGrid()
 mymap = generateMaze()
 
-#Initliazing the nengo model, network and game map
+# Initliazing the nengo model, network and game map
 
 with model:
     pacman = pacman_world.PacmanWorld(mymap)
@@ -154,7 +123,7 @@ with model:
     nengo.Connection(pacman.detect_food, food)
 
     # turn towards food
-    nengo.Connection(food[0], move[1], transform=4)
+    nengo.Connection(food[0], move[1], transform=2)
     # move towards food
     nengo.Connection(food[1], move[0], transform=3)
 
@@ -176,11 +145,11 @@ with model:
 
     # detect enemies
     enemy = nengo.Ensemble(n_neurons=100, dimensions=2)
-    nengo.Connection(pacman.detect_enemy, enemy)
+    #nengo.Connection(pacman.detect_enemy, enemy)
 
     # run away from enemies
     # - angle is the direction to the enemies
     # - radius is the strength (1.0/distance)
     def run_away(x):
-        return -1*x[1], -2*x[0]
-    nengo.Connection(enemy, move, function=run_away)
+        return -2*x[1], -2*x[0]
+    #nengo.Connection(enemy, move, function=run_away)
