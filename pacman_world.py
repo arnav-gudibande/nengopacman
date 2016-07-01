@@ -51,6 +51,7 @@ class Cell(cellular.Cell):
         global row
         row+=1
 
+        # Conditionals to place food in only increments of 5
         if(row%100==0):
             global col
             col+=1
@@ -298,6 +299,7 @@ class PacmanWorld(nengo.Network):
     def update_ghost(self, ghost):
         dt = 0.001
 
+        # Updates the ghost's position based on angles and distance towards the obstacles, etc.
         angles = np.linspace(-1, 1, 5) + ghost.dir
         angles = angles % self.world.directions
         obstacle_distances = [ghost.detect(d, max_distance=4*2)[0] for d in angles]
@@ -308,6 +310,7 @@ class PacmanWorld(nengo.Network):
 
         # Factors in target distance and calls the turn and go_forward functions in that direction
 
+        # If the ghost is in a seeking condition, then it is turning towards the pacman and going forward
         if(ghost.state == "seeking"):
             theta = ghost.dir - target_dir
             while theta > 2: theta -= 4
@@ -316,6 +319,8 @@ class PacmanWorld(nengo.Network):
             ghost.go_forward(self.ghost_speed * dt)
             if ghost.get_distance_to(self.pacman) < 1:
                 self.reset()
+
+        # If the ghost is in a running condition, then it is turning away from the pacman and going forward
         elif(ghost.state == "running"):
             if ghost.get_distance_to(self.pacman) < 1:
                 ghost.state = "seeking"
