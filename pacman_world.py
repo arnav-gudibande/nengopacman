@@ -11,6 +11,8 @@ from threading import Timer
 # The pacman and ghost classes extend the continuous body class
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
+# Add multiple Pacman or Ghosts (with controllers) w/out modifying code
+
 global pacman
 pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
@@ -195,6 +197,7 @@ class PacmanWorld(nengo.Network):
                     # If pacman eats a super food...
                     if(self.pacman.cell.state=="super"):
 
+                        # Put this method outside the if statement
                         def revertColor():
 
                             # Turns ghosts to their orginal state
