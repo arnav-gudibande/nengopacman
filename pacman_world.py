@@ -15,8 +15,7 @@ global pacman
 pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
 global ghost
-ghost = body.Player("ghost", "seeking", 0.35, "red", 10, 10)
-
+ghost = body.Player("ghost", "seeking", pacman.size, "red", 5, 5)
 
 # These variables keep track of the row and column count while generating the maze
 global counter
@@ -25,12 +24,6 @@ global row
 row = 0
 global col
 col = 0
-
-# This function generates pseudo-random numbers that are divisible by 5
-def randCoor():
-    x = (randint(0,19)) * 5
-    y = (randint(0,5)) * 5
-    return x, y
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -92,8 +85,8 @@ class GridNode(nengo.Node):
     # This function sets up an SVG (used to embed html code in the environment)
     def generate_svg(self, world):
         cells = []
-        xC, yC = randCoor()
         # Runs through every cell in the world (walls & food)
+        listFood = list()
         for i in range(world.width):
             for j in range(world.height):
                 cell = world.get_cell(i, j)
@@ -108,16 +101,17 @@ class GridNode(nengo.Node):
 
                 # If the cell is normal food, then set its appearance to a white circle
                 if color=="white" and i!=1 and j!=1:
-                    print(str(i) + ", " + str(j))
+                    cell.state = "food"
                     cells.append('<circle cx=%d cy=%d r=0.4 style="fill:%s"/>' %
                         (i, j, color))
 
                 # If the cell is super food, then set its appearance to a larger white circle
-
-                if color=="white" and i!=1 and j!=1 and i==84 and j==25:
+                if color=="white" and i!=1 and j!=1 and ((i==84 and j==25) or (i==64 and j==10) or (i==34 and j==15)):
                     cell.state = "super"
                     cells.append('<circle cx=%d cy=%d r=0.55 style="fill:%s"/>' %
                         (i, j, "orange"))
+
+
 
 
         # Runs through every agent in the world (ghost & pacman)
@@ -190,6 +184,10 @@ class PacmanWorld(nengo.Network):
                 self.pacman.turn(rotation * dt * pacman_rotate)
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
+                dir = self.pacman.get_direction_to(cell)
+                dist = self.pacman.get_distance_to(cell)
+                rel_dir = dir - self.pacman.dir
+
                 # If pacman moves into a cell containing food...
                 if self.pacman.cell.food:
 
@@ -201,6 +199,7 @@ class PacmanWorld(nengo.Network):
                             # Turns ghosts to their orginal state
                             global ghost
                             ghost.color = "red"
+                            ghost.state = "seeking"
 
                             # Sets the pacman's state to "eating"
                             global pacman
@@ -211,6 +210,7 @@ class PacmanWorld(nengo.Network):
                         # Ghosts turn white when pacman eats a super food
                         global ghost
                         ghost.color = "white"
+                        ghost.state = "running"
 
                         # Pacman's state becomes "seeking"
                         global pacman
@@ -264,8 +264,7 @@ class PacmanWorld(nengo.Network):
                     dist = self.pacman.get_distance_to(cell)
                     rel_dir = dir - self.pacman.dir
                     if dist > 5: continue
-
-                    strength = 1.0 / dist
+                    if dist>=0.05: strength = 1.0 / dist
 
                     dx = np.sin(rel_dir * np.pi / 2) * strength
                     dy = np.cos(rel_dir * np.pi / 2) * strength
@@ -285,7 +284,7 @@ class PacmanWorld(nengo.Network):
                     dir = self.pacman.get_direction_to(ghost)
                     dist = self.pacman.get_distance_to(ghost)
                     rel_dir = dir - self.pacman.dir
-                    strength = 10.0 / dist
+                    strength = 1.0 / dist
 
                     dx = np.sin(rel_dir * np.pi / 2) * strength
                     dy = np.cos(rel_dir * np.pi / 2) * strength
@@ -299,7 +298,6 @@ class PacmanWorld(nengo.Network):
     def update_ghost(self, ghost):
         dt = 0.001
 
-        #
         angles = np.linspace(-1, 1, 5) + ghost.dir
         angles = angles % self.world.directions
         obstacle_distances = [ghost.detect(d, max_distance=4*2)[0] for d in angles]
@@ -309,13 +307,24 @@ class PacmanWorld(nengo.Network):
         target_dir = ghost.get_direction_to(self.pacman)
 
         # Factors in target distance and calls the turn and go_forward functions in that direction
-        theta = ghost.dir - target_dir
-        while theta > 2: theta -= 4
-        while theta < -2: theta += 4
-        ghost.turn(-theta * dt * self.ghost_rotate)
-        ghost.go_forward(self.ghost_speed * dt)
-        if ghost.get_distance_to(self.pacman) < 0.5:
-            self.reset()
+
+        if(ghost.state == "seeking"):
+            theta = ghost.dir - target_dir
+            while theta > 2: theta -= 4
+            while theta < -2: theta += 4
+            ghost.turn(-theta * dt * self.ghost_rotate)
+            ghost.go_forward(self.ghost_speed * dt)
+            if ghost.get_distance_to(self.pacman) < 1:
+                self.reset()
+        elif(ghost.state == "running"):
+            if ghost.get_distance_to(self.pacman) < 1:
+                ghost.state = "seeking"
+                ghost.cell = random.choice(starting)
+            theta = ghost.dir - target_dir
+            while theta > 2: theta -= 4
+            while theta < -2: theta += 4
+            ghost.turn(360-( -theta * dt * self.ghost_rotate))
+            ghost.go_forward(self.ghost_speed * dt)
 
     # Resets the pacman's position after it loses
     def reset(self):
@@ -324,7 +333,7 @@ class PacmanWorld(nengo.Network):
         # Runs through the rows in the world and reinializes cells
         for row in self.world.grid:
             for cell in row:
-                if not (cell.wall or cell.pacman_start or cell.enemy_start):
+                if not (cell.wall or cell.pacman_start or cell.enemy_start) and (cell.state == "food" or cell.state == "super"):
                     cell.food = True
 
         # reinializes the starting position of the pacman
