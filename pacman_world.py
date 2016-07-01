@@ -11,6 +11,7 @@ from threading import Timer
 # The pacman and ghost classes extend the continuous body class
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
+
 global pacman
 pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
