@@ -130,7 +130,6 @@ with model:
     food = nengo.Ensemble(n_neurons=100, dimensions=2)
     nengo.Connection(foodSensor, food, synapse = 0.)
 
-
     # turn towards food
     nengo.Connection(food[0], move[1], transform=2)
     # move towards food
