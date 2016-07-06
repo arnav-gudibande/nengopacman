@@ -3,6 +3,7 @@ import numpy as np
 import nengo
 import cellular
 import continuous
+import pacman_world
 
 class Player(continuous.Body):
 

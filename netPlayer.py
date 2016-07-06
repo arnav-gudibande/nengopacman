@@ -13,4 +13,4 @@ class NetPlayer(nengo.Network):
         self.move = nengo.Node(move, size_in = 2, size_out = 2)
         self.food = nengo.Node(food, size_in = 2, size_out = 2)
         self.obstacles = nengo.Node(obstacles, size_in = 2, size_out = 2)
-        
+        self.sensor_in = nengo.Node(lambda t,x: x, size_in = 2, size_out = 2)

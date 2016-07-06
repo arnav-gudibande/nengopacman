@@ -5,6 +5,7 @@ from random import randint
 import numpy as np
 import random
 import re
+import body
 
 def generateMaze():
     num_rows = 3 # number of rows
@@ -101,7 +102,6 @@ def generateMaze():
 
     return new
 
-
 # Nengo Network
 model = nengo.Network()
 mymap = generateMaze()
@@ -109,18 +109,27 @@ mymap = generateMaze()
 # Initliazing the nengo model, network and game map
 
 with model:
-    pacman = pacman_world.PacmanWorld(mymap)
+
+    myPacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
+    pacman = pacman_world.PacmanWorld(mymap, myPacman)
 
     # create the movement control
     # - dimensions are speed (forward|backward) and rotation (left|right)
+    moveSensor = nengo.Node(size_in = 2)
     move = nengo.Ensemble(n_neurons=100, dimensions=2, radius=3)
-    nengo.Connection(move, pacman.move)
+
+    nengo.Connection(move, moveSensor, synapse = 0.)
+    nengo.Connection(moveSensor, pacman.move, synapse = 0.)
 
     # sense food
     # - angle is the direction to the food
     # - radius is the strength (1.0/distance)
+    foodSensor = nengo.Node(size_in = 2)
+    nengo.Connection(pacman.detect_food, foodSensor, synapse = 0.)
+
     food = nengo.Ensemble(n_neurons=100, dimensions=2)
-    nengo.Connection(pacman.detect_food, food)
+    nengo.Connection(foodSensor, food, synapse = 0.)
+
 
     # turn towards food
     nengo.Connection(food[0], move[1], transform=2)
@@ -130,8 +139,10 @@ with model:
     # sense obstacles
     # - distance to obstacles on left, front-left, front, front-right, and right
     # - maximum distance is 4
-    obstacles = nengo.Ensemble(n_neurons=100, dimensions=3, radius=4)
-    nengo.Connection(pacman.obstacles[[1, 2, 3]], obstacles, transform=0.5, synapse = 0)
+    obstacleSensor = nengo.Node(size_in = 3)
+    obstacles = nengo.Ensemble(n_neurons=50, dimensions=3, radius=4)
+    nengo.Connection(pacman.obstacles[[1,2,3]], obstacleSensor, transform=0.5, synapse = 0.)
+    nengo.Connection(obstacleSensor, obstacles, synapse = 0.)
 
     # turn away from walls
     def avoid(x):
@@ -144,8 +155,11 @@ with model:
     nengo.Connection(obstacles, move[0], function=ahead)
 
     # detect enemies
+    enemySensor = nengo.Node(size_in = 2)
+    nengo.Connection(pacman.detect_enemy, enemySensor, synapse = 0.)
+
     enemy = nengo.Ensemble(n_neurons=50, dimensions=2)
-    nengo.Connection(pacman.detect_enemy, enemy)
+    nengo.Connection(enemySensor, enemy, synapse = 0.)
 
     # run away from enemies
     # - angle is the direction to the enemies

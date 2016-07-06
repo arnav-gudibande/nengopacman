@@ -5,6 +5,7 @@ import nengo
 import cellular
 import continuous
 import body
+import netPlayer
 from threading import Timer
 
 # Global variables that contain information about the pacman and ghost
@@ -12,9 +13,6 @@ from threading import Timer
 # Additonally, their parameters can be edited to change their state, color, size, etc.
 
 # Add multiple Pacman or Ghosts (with controllers) w/out modifying code
-
-global pacman
-pacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 
 global ghost
 ghost = body.Player("ghost", "seeking", pacman.size, "red", 5, 5)
@@ -114,9 +112,6 @@ class GridNode(nengo.Node):
                     cells.append('<circle cx=%d cy=%d r=0.55 style="fill:%s"/>' %
                         (i, j, "orange"))
 
-
-
-
         # Runs through every agent in the world (ghost & pacman)
         agents = []
         for agent in world.agents:
@@ -143,17 +138,17 @@ class GridNode(nengo.Node):
                          ''.join(cells), ''.join(agents))
         return svg
 
-
+# Main Pacman World class
 class PacmanWorld(nengo.Network):
 
-    def __init__(self, worldmap, pacman_speed = pacman.speed, pacman_rotate = pacman.rotate,
+    def __init__(self, worldmap, pacman1, pacman_speed = 70, pacman_rotate = 20,
                  ghost_speed = ghost.speed, ghost_rotate=ghost.rotate,
                  **kwargs):
 
         # Initializes PacmanWorld using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
-        self.pacman = pacman
+        self.pacman = pacman1
         self.ghost_rotate = ghost_rotate
         self.ghost_speed = ghost_speed
 
@@ -177,9 +172,8 @@ class PacmanWorld(nengo.Network):
         with self:
             self.environment = GridNode(self.world)
 
-            # Pacman's move function -- called every 0.001 second (set using dt)
+            #Pacman's move function -- called every 0.001 second (set using dt)
             def move(t, x):
-
                 speed, rotation = x
                 dt = 0.001
 
@@ -187,47 +181,31 @@ class PacmanWorld(nengo.Network):
                 self.pacman.turn(rotation * dt * pacman_rotate)
                 self.pacman.go_forward(speed * dt * pacman_speed)
 
-                dir = self.pacman.get_direction_to(cell)
-                dist = self.pacman.get_distance_to(cell)
-                rel_dir = dir - self.pacman.dir
-
                 # If pacman moves into a cell containing food...
                 if self.pacman.cell.food:
-
                     # If pacman eats a super food...
                     if(self.pacman.cell.state=="super"):
-
                         # Put this method outside the if statement
                         def revertColor():
-
                             # Turns ghosts to their orginal state
                             global ghost
                             ghost.color = "red"
                             ghost.state = "seeking"
-
                             # Sets the pacman's state to "eating"
-                            global pacman
-                            pacman.state = "eating"
+                            self.pacman.state = "eating"
                             for g in self.enemies:
                                 g.color = "red"
-
                         # Ghosts turn white when pacman eats a super food
                         global ghost
                         ghost.color = "white"
                         ghost.state = "running"
-
                         # Pacman's state becomes "seeking"
-                        global pacman
-                        pacman.state = "seeking"
-
+                        self.pacman.state = "seeking"
                         for g in self.enemies:
                             g.color = "white"
-
                         # After 5 seconds, the revertColor method is called
                         tx = Timer(5.0, revertColor)
                         tx.start()
-
-
                     # Adds to the score and updates ghosts
                     self.pacman.score += 1
                     self.pacman.cell.food = False
@@ -236,6 +214,7 @@ class PacmanWorld(nengo.Network):
 
                 for ghost in self.enemies:
                     self.update_ghost(ghost)
+
             self.move = nengo.Node(move, size_in=2)
 
             # The score is kept track of using an html rendering
@@ -306,6 +285,7 @@ class PacmanWorld(nengo.Network):
         angles = np.linspace(-1, 1, 5) + ghost.dir
         angles = angles % self.world.directions
         obstacle_distances = [ghost.detect(d, max_distance=4*2)[0] for d in angles]
+
         ghost.turn((obstacle_distances[1]-obstacle_distances[3])*-2 * dt * self.ghost_rotate)
         ghost.go_forward((obstacle_distances[2]-0.5)*2*self.ghost_speed * dt)
 
