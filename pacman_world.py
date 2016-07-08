@@ -14,8 +14,8 @@ from threading import Timer
 
 # Add multiple Pacman or Ghosts (with controllers) w/out modifying code
 
-global ghost
-ghost = body.Player("ghost", "seeking", pacman.size, "red", 5, 5)
+#global ghost
+#ghost = body.Player("ghost", "seeking", pacman.size, "red", 5, 5)
 
 # These variables keep track of the row and column count while generating the maze
 global counter
@@ -141,7 +141,7 @@ class GridNode(nengo.Node):
 # Main Pacman World class
 class PacmanWorld(nengo.Network):
 
-    def __init__(self, worldmap, pacman1, pacman_speed = 70, pacman_rotate = 20,
+    def __init__(self, worldmap, pacman1, ghost1, pacman_speed = 70, pacman_rotate = 20,
                  ghost_speed = ghost.speed, ghost_rotate=ghost.rotate,
                  **kwargs):
 
@@ -149,6 +149,7 @@ class PacmanWorld(nengo.Network):
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
         self.pacman = pacman1
+        self.ghost = ghost1
         self.ghost_rotate = ghost_rotate
         self.ghost_speed = ghost_speed
 
@@ -188,7 +189,6 @@ class PacmanWorld(nengo.Network):
                         # Put this method outside the if statement
                         def revertColor():
                             # Turns ghosts to their orginal state
-                            global ghost
                             ghost.color = "red"
                             ghost.state = "seeking"
                             # Sets the pacman's state to "eating"
@@ -196,9 +196,8 @@ class PacmanWorld(nengo.Network):
                             for g in self.enemies:
                                 g.color = "red"
                         # Ghosts turn white when pacman eats a super food
-                        global ghost
-                        ghost.color = "white"
-                        ghost.state = "running"
+                        self.ghost.color = "white"
+                        self.ghost.state = "running"
                         # Pacman's state becomes "seeking"
                         self.pacman.state = "seeking"
                         for g in self.enemies:

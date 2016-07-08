@@ -6,6 +6,7 @@ import numpy as np
 import random
 import re
 import body
+import netPlayer
 
 def generateMaze():
     num_rows = 3 # number of rows
@@ -111,7 +112,8 @@ mymap = generateMaze()
 with model:
 
     myPacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
-    pacman = pacman_world.PacmanWorld(mymap, myPacman)
+    myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
+    pacman = pacman_world.PacmanWorld(mymap, myPacman, myGhost)
 
     # create the movement control
     # - dimensions are speed (forward|backward) and rotation (left|right)
