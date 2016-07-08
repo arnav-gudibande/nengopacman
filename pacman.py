@@ -113,6 +113,8 @@ with model:
 
     myPacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
     myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
+    myGhost2 = body.Player("ghost", "seeking", 2.5, "green", 5, 5)
+
     pacman = pacman_world.PacmanWorld(mymap, myPacman, myGhost)
 
     # create the movement control

@@ -14,9 +14,6 @@ from threading import Timer
 
 # Add multiple Pacman or Ghosts (with controllers) w/out modifying code
 
-#global ghost
-#ghost = body.Player("ghost", "seeking", pacman.size, "red", 5, 5)
-
 # These variables keep track of the row and column count while generating the maze
 global counter
 counter = 0
@@ -118,10 +115,10 @@ class GridNode(nengo.Node):
 
             # sets variables like agent direction, color and size
             direction = agent.dir * 360.0 / world.directions
-            color = getattr(agent, 'color', pacman.color)
+            color = getattr(agent, 'color', "yellow")
             if callable(color):
                 color = color()
-            s = pacman.size
+            s = 2
 
             # Uses HTML rendering to setup the agents
             agent_poly = ('<circle r="%f"'
@@ -141,17 +138,17 @@ class GridNode(nengo.Node):
 # Main Pacman World class
 class PacmanWorld(nengo.Network):
 
-    def __init__(self, worldmap, pacman1, ghost1, pacman_speed = 70, pacman_rotate = 20,
-                 ghost_speed = ghost.speed, ghost_rotate=ghost.rotate,
-                 **kwargs):
+    def __init__(self, worldmap, pacman1, ghost, **kwargs):
 
         # Initializes PacmanWorld using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
         self.pacman = pacman1
-        self.ghost = ghost1
-        self.ghost_rotate = ghost_rotate
-        self.ghost_speed = ghost_speed
+        self.ghost = ghost
+        self.pacman_speed = pacman1.speed
+        self.pacman_rotate = pacman1.rotate
+        self.ghost_rotate = self.ghost.rotate
+        self.ghost_speed = self.ghost.speed
 
         # Init for starting positions of the pacman and for food, etc.
         starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
@@ -163,6 +160,7 @@ class PacmanWorld(nengo.Network):
 
         # Adds a random amount of ghost enemies to the world
         self.enemies = []
+
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
             new = body.Player("ghost", "seeking", 0.37, "red", 10, 5)
             self.world.add(new, cell=cell, dir=1)
@@ -179,8 +177,8 @@ class PacmanWorld(nengo.Network):
                 dt = 0.001
 
                 # Pacman turns and moves forward based on obstacles and food availability
-                self.pacman.turn(rotation * dt * pacman_rotate)
-                self.pacman.go_forward(speed * dt * pacman_speed)
+                self.pacman.turn(rotation * dt * self.pacman_rotate)
+                self.pacman.go_forward(speed * dt * self.pacman_speed)
 
                 # If pacman moves into a cell containing food...
                 if self.pacman.cell.food:
