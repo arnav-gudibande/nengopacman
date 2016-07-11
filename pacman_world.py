@@ -14,13 +14,6 @@ from threading import Timer
 
 # Add multiple Pacman or Ghosts (with controllers) w/out modifying code
 
-# These variables keep track of the row and column count while generating the maze
-global counter
-counter = 0
-global row
-row = 0
-global col
-col = 0
 
 # The cell class encapsulates every "object" in the game (walls, food, enemies, pacman, etc.)
 class Cell(cellular.Cell):
@@ -31,6 +24,9 @@ class Cell(cellular.Cell):
     none = False
     enemy_start = False
     state = "regular"
+    counter = 0
+    row = 0
+    col = 0
 
     # The Color function sets the color of both the wall and food
     def color(self):

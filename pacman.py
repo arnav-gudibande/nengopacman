@@ -121,7 +121,7 @@ with model:
     # - dimensions are speed (forward|backward) and rotation (left|right)
     moveSensor = nengo.Node(size_in = 2)
     move = nengo.Ensemble(n_neurons=100, dimensions=2, radius=3)
-
+ 
     nengo.Connection(move, moveSensor, synapse = 0.)
     nengo.Connection(moveSensor, pacman.move, synapse = 0.)
 
