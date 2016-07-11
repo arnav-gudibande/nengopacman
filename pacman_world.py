@@ -137,7 +137,7 @@ class GridNode(nengo.Node):
 # Main Pacman World class
 class PacmanWorld(nengo.Network):
 
-    def __init__(self, worldmap, pacman1, ghost, **kwargs):
+    def __init__(self, worldmap, pacman1, ghost, ghostList, **kwargs):
 
         # Initializes PacmanWorld using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
@@ -159,11 +159,15 @@ class PacmanWorld(nengo.Network):
 
         # Adds a random amount of ghost enemies to the world
         self.enemies = []
+        #self.enemies.append(ghostList[0])
 
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
             new = body.Player("ghost", "seeking", 0.37, "red", 10, 5)
             self.world.add(new, cell=cell, dir=1)
             self.enemies.append(new)
+            for gG in ghostList:
+                self.world.add(gG, cell = cell, dir = 1)
+                self.enemies.append(gG)
         self.completion_time = None
 
         # Sets up environment for the GridNode (this includes the nodes for obstacles and food)
