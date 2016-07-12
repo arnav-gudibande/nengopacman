@@ -117,7 +117,7 @@ class GridNode(nengo.Node):
             color = getattr(agent, 'color', "yellow")
             if callable(color):
                 color = color()
-            s = 2
+            s = agent.size
 
             # Uses HTML rendering to setup the agents
             agent_poly = ('<circle r="%f"'
@@ -139,7 +139,7 @@ class PacmanWorld(nengo.Network):
 
     def __init__(self, worldmap, pacman1, ghost, ghostList, **kwargs):
 
-        # Initializes PacmanWorld using parameters from the global pacman and ghost variables
+        # Initializes Pacman World using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
         self.pacman = pacman1
@@ -159,10 +159,9 @@ class PacmanWorld(nengo.Network):
 
         # Adds a random amount of ghost enemies to the world
         self.enemies = []
-        #self.enemies.append(ghostList[0])
 
         for cell in self.world.find_cells(lambda cell: cell.enemy_start):
-            new = body.Player("ghost", "seeking", 0.37, "red", 10, 5)
+            new = body.Player("ghost", "seeking", 2, "red", 10, 5)
             self.world.add(new, cell=cell, dir=1)
             self.enemies.append(new)
             for gG in ghostList:
@@ -185,6 +184,9 @@ class PacmanWorld(nengo.Network):
 
                 # If pacman moves into a cell containing food...
                 if self.pacman.cell.food:
+                    ghostC = []
+                    for g in self.enemies:
+                        ghostC.append(g.color)
                     # If pacman eats a super food...
                     if(self.pacman.cell.state=="super"):
                         # Put this method outside the if statement
@@ -194,8 +196,10 @@ class PacmanWorld(nengo.Network):
                             ghost.state = "seeking"
                             # Sets the pacman's state to "eating"
                             self.pacman.state = "eating"
+                            i=0
                             for g in self.enemies:
-                                g.color = "red"
+                                g.color = ghostC[i]
+                                i+=1
                         # Ghosts turn white when pacman eats a super food
                         self.ghost.color = "white"
                         self.ghost.state = "running"

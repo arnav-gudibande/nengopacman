@@ -19,10 +19,12 @@ with model:
 
     myPacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
     myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
-    myGhost2 = body.Player("ghost", "seeking", 2.5, "green", 5, 5)
+    myGhost2 = body.Player("ghost", "seeking", 2, "green", 5, 5)
+    myGhost3 = body.Player("ghost", "seeking", 2, "blue", 5, 5)
     ghostList = []
-    ghostList.append(myGhost)
     ghostList.append(myGhost2)
+    ghostList.append(myGhost3)
+
     pacman = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
 
     # create the movement control
