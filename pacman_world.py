@@ -5,7 +5,6 @@ import nengo
 import cellular
 import continuous
 import body
-import netPlayer
 from threading import Timer
 
 # Global variables that contain information about the pacman and ghost
@@ -251,7 +250,9 @@ class PacmanWorld(nengo.Network):
                     dist = self.pacman.get_distance_to(cell)
                     rel_dir = dir - self.pacman.dir
                     if dist > 5: continue
-                    if dist>=0.05: strength = 1.0 / dist
+                    if dist>=0.05:
+                        strength = 1.0 / dist
+                    else: strength = 20
 
                     dx = np.sin(rel_dir * np.pi / 2) * strength
                     dy = np.cos(rel_dir * np.pi / 2) * strength

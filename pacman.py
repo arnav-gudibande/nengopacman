@@ -6,7 +6,6 @@ import numpy as np
 import random
 import re
 import body
-import netPlayer
 import maze
 
 # Nengo Network

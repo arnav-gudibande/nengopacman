@@ -5,7 +5,6 @@ import nengo
 import cellular
 import continuous
 import body
-import netPlayer
 from threading import Timer
 
 
