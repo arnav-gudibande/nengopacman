@@ -11,23 +11,25 @@ import maze
 # Nengo Network
 model = nengo.Network()
 mymap = maze.generateMaze()
+mymap2 = maze.generateMaze()
 world = nengo.Network()
 
 # Initliazing the nengo model, network and game map
 
 myPacman = body.Player("pacman", "eating", 2, "yellow", 70, 20)
+myPacman2 = body.Player("pacman", "eating", 2, "yellow", 70, 20)
 myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
-myGhost2 = body.Player("ghost", "seeking", 2, "green", 5, 5)
-myGhost3 = body.Player("ghost", "seeking", 2, "blue", 5, 5)
+myGhost2 = body.Player("ghost", "seeking", 2, "red", 5, 5)
+
 ghostList = []
+ghostList2 = []
 
 
 
 with model:
 
     pacPlayer = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
-    pacPlayer2 = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
-    environment = pacman_world.GridNode(pacPlayer.world)
+    pacPlayer2 = pacman_world.PacmanWorld(mymap2, myPacman2, myGhost2, ghostList2)
     gamePacmen = [pacPlayer, pacPlayer2]
 
     sensor = nengo.Ensemble(n_neurons = 100, dimensions = 2*len(gamePacmen), radius = 3)
