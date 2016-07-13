@@ -1,16 +1,8 @@
-import random
-from random import randint
 import numpy as np
-import nengo
-import cellular
-import continuous
-import body
-from threading import Timer
 
+def generateMaze(num_rows, num_cols, num_ghosts=3, seed=None, num_passage=2):
 
-def generateMaze():
-    num_rows = 3 # number of rows
-    num_cols = 10 # number of columns
+    rng = np.random.RandomState(seed=seed)
 
     M = np.zeros((num_rows,num_cols,5), dtype=np.uint8)
     # The array M is going to hold the array information for each cell.
@@ -23,7 +15,7 @@ def generateMaze():
     # Set starting row and column
     r = 0
     c = 0
-    history = [(r,c)]
+    history = [(r,c)] # The history is the
 
     # Trace a path though the cells of the maze and open walls along the path.
     # We do this with a while loop, repeating the loop until there is no history,
@@ -44,7 +36,7 @@ def generateMaze():
         if len(check): # If there is a valid cell to move to.
             # Mark the walls between cells as open if we move
             history.append([r,c])
-            move_direction = random.choice(check)
+            move_direction = rng.choice(check)
             if move_direction == 'L':
                 M[r,c,0] = 1
                 c = c-1
@@ -64,6 +56,22 @@ def generateMaze():
         else: # If there are no valid cells to move to.
     	# retrace one step back in history if no move is possible
             r,c = history.pop()
+
+
+    walls = np.where(M[1:-1,1:-1,:2] == 0)
+    chosen = rng.choice(np.arange(len(walls[0])),
+                              size=num_passage, replace=False)
+    for i in chosen:
+        M[walls[0][i]+1, walls[1][i]+1, walls[2][i]] = 1
+        if walls[2][i] == 0:
+            M[walls[0][i]+1, walls[1][i]+1-1, 2] = 1
+        elif walls[2][i] == 2:
+            M[walls[0][i]+1, walls[1][i]+1+1, 0] = 1
+        elif walls[2][i] == 1:
+            M[walls[0][i]+1-1, walls[1][i]+1, 3] = 1
+        elif walls[2][i] == 3:
+            M[walls[0][i]+1+1, walls[1][i]+1, 1] = 1
+
 
     hashes = ""
     # Generate the image for display
@@ -88,17 +96,23 @@ def generateMaze():
                 else:
                     hashes += "#"
 
+    spaces = np.where(image == 255)
+    chosen = rng.choice(np.arange(len(spaces[0])),
+                              size=num_ghosts, replace=False)
+
+    for i in chosen:
+        image[spaces[0][i], spaces[1][i]] = 2
+
     new = ""
-    eC=0
+
     for x in range(len(image)):
         for y in range(len(image[0])):
-            if(randint(0,500) == randint(0,500)):
-                eC+=1
-                new = new[:-1]
-                if(eC<=3): new += "E"
-                elif(eC>3): new += " "
+            if (image[x][y] == 2): new += "E"
             if (image[x][y] == 255): new += " "
             if (image[x][y] == 0): new += "#"
         new += "\n"
 
     return new
+
+if __name__ == '__main__':
+    print generateMaze(4, 4, num_ghosts=3, seed=None)

@@ -1,17 +1,17 @@
 import nengo
-import pac
-reload(pac)
+import pacman_world
+reload(pacman_world)
 from random import randint
 import numpy as np
 import random
 import re
+import cellular
 import body
 import maze
 
 # Nengo Network
 model = nengo.Network()
-mymap = maze.generateMaze()
-mymap2 = maze.generateMaze()
+mymap = maze.generateMaze(num_rows=3, num_cols=10, num_ghosts=3, seed=1)
 world = nengo.Network()
 
 # Initliazing the nengo model, network and game map
@@ -22,15 +22,14 @@ myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
 myGhost2 = body.Player("ghost", "seeking", 2, "red", 5, 5)
 
 ghostList = []
-ghostList2 = []
 
 with model:
 
-    pacPlayer = pac.PacmanWorld(mymap, myPacman, myGhost, ghostList)
-    #pacPlayer2 = pac.PacmanWorld(mymap2, myPacman2, myGhost2, ghostList2)
+    pacPlayer = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
+    #pacPlayer2 = pacman_world.PacmanWorld(mymap, myPacman2, myGhost, ghostList)
     gamePacmen = [pacPlayer]
 
-    sensor = nengo.Ensemble(n_neurons = 100, dimensions = 2*len(gamePacmen), radius = 3)
+    sensor = nengo.Ensemble(n_neurons = 200, dimensions = 2*len(gamePacmen), radius = 3)
 
     for i, pacPlayer in enumerate(gamePacmen):
         start = 2*i
