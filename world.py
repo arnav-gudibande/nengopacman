@@ -1,6 +1,6 @@
 import nengo
-import pacman_world
-reload(pacman_world)
+import pac
+reload(pac)
 from random import randint
 import numpy as np
 import random
@@ -24,13 +24,11 @@ myGhost2 = body.Player("ghost", "seeking", 2, "red", 5, 5)
 ghostList = []
 ghostList2 = []
 
-
-
 with model:
 
-    pacPlayer = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
-    pacPlayer2 = pacman_world.PacmanWorld(mymap2, myPacman2, myGhost2, ghostList2)
-    gamePacmen = [pacPlayer, pacPlayer2]
+    pacPlayer = pac.PacmanWorld(mymap, myPacman, myGhost, ghostList)
+    #pacPlayer2 = pac.PacmanWorld(mymap2, myPacman2, myGhost2, ghostList2)
+    gamePacmen = [pacPlayer]
 
     sensor = nengo.Ensemble(n_neurons = 100, dimensions = 2*len(gamePacmen), radius = 3)
 
