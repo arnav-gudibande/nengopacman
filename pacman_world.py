@@ -201,6 +201,7 @@ class PacmanWorld(nengo.Network):
                         self.pacman.state = "seeking"
                         for g in self.enemies:
                             g.color = "white"
+                            g.state = "running"
                         # After 5 seconds, the revertColor method is called
                         tx = Timer(5.0, revertColor)
                         tx.start()
@@ -304,10 +305,14 @@ class PacmanWorld(nengo.Network):
                 self.reset()
 
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
-        elif(ghost.state == "running"):
+        if(ghost.state == "running"):
             if ghost.get_distance_to(self.pacman) < 1:
                 ghost.state = "seeking"
+                starting = list(self.world.find_cells(lambda cell: cell.enemy_start))
+                if len(starting) == 0:
+                    starting = list(self.world.find_cells(lambda cell: cell.food))
                 ghost.cell = random.choice(starting)
+                print("Hit white ghost")
             theta = ghost.dir - target_dir
             while theta > 2: theta -= 4
             while theta < -2: theta += 4

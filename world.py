@@ -26,10 +26,10 @@ ghostList = []
 with model:
 
     pacPlayer = pacman_world.PacmanWorld(mymap, myPacman, myGhost, ghostList)
-    #pacPlayer2 = pacman_world.PacmanWorld(mymap, myPacman2, myGhost, ghostList)
-    gamePacmen = [pacPlayer]
+    pacPlayer2 = pacman_world.PacmanWorld(mymap, myPacman2, myGhost, ghostList)
+    gamePacmen = [pacPlayer, pacPlayer2]
 
-    sensor = nengo.Ensemble(n_neurons = 200, dimensions = 2*len(gamePacmen), radius = 3)
+    sensor = nengo.Ensemble(n_neurons = (200*len(gamePacmen)), dimensions = 2*len(gamePacmen), radius = 3)
 
     for i, pacPlayer in enumerate(gamePacmen):
         start = 2*i
