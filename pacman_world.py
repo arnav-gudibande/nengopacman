@@ -131,15 +131,13 @@ class GridNode(nengo.Node):
 # Main Pacman World class
 class PacmanWorld(nengo.Network):
 
-    def __init__(self, worldmap, pacman1, ghost, ghostList, **kwargs):
+    def __init__(self, worldmap, pacmen, ghost, ghostList, **kwargs):
 
         # Initializes Pacman World using parameters from the global pacman and ghost variables
         super(PacmanWorld, self).__init__(**kwargs)
         self.world = cellular.World(Cell, map=worldmap, directions=4)
-        self.pacman = pacman1
+        self.pacmen = pacmen
         self.ghost = ghost
-        self.pacman_speed = pacman1.speed
-        self.pacman_rotate = pacman1.rotate
         self.ghost_rotate = self.ghost.rotate
         self.ghost_speed = self.ghost.speed
 
@@ -149,7 +147,6 @@ class PacmanWorld(nengo.Network):
             starting = list(self.world.find_cells(lambda cell: cell.food))
         cell = random.choice(starting)
         total = len(list(self.world.find_cells(lambda cell: cell.food)))
-        self.world.add(self.pacman, cell=cell, dir=3)
 
         # Adds a random amount of ghost enemies to the world
         self.enemies = []
@@ -163,62 +160,128 @@ class PacmanWorld(nengo.Network):
                 self.enemies.append(gG)
         self.completion_time = None
 
+
         # Sets up environment for the GridNode (this includes the nodes for obstacles and food)
         with self:
             self.environment = GridNode(self.world)
 
-            #Pacman's move function -- called every 0.001 second (set using dt)
-            def move(t, x):
-                speed, rotation = x
-                dt = 0.001
+            self.pacnets = []
+            for i, pacman in enumerate(self.pacmen):
+                self.world.add(pacman, cell=cell, dir=3)
 
-                # Pacman turns and moves forward based on obstacles and food availability
-                self.pacman.turn(rotation * dt * self.pacman_rotate)
-                self.pacman.go_forward(speed * dt * self.pacman_speed)
+                pacnet = nengo.Network(label='pacman[%d]' % i)
+                self.pacnets.append(pacnet)
 
-                # If pacman moves into a cell containing food...
-                if self.pacman.cell.food:
-                    ghostC = []
-                    for g in self.enemies:
-                        ghostC.append(g.color)
-                    # If pacman eats a super food...
-                    if(self.pacman.cell.state=="super"):
-                        # Put this method outside the if statement
-                        def revertColor():
-                            # Turns ghosts to their orginal state
-                            ghost.color = "red"
-                            ghost.state = "seeking"
-                            # Sets the pacman's state to "eating"
-                            self.pacman.state = "eating"
-                            i=0
-                            for g in self.enemies:
-                                g.color = ghostC[i]
-                                i+=1
-                        # Ghosts turn white when pacman eats a super food
-                        self.ghost.color = "white"
-                        self.ghost.state = "running"
-                        # Pacman's state becomes "seeking"
-                        self.pacman.state = "seeking"
+                #Pacman's move function -- called every 0.001 second (set using dt)
+                def move(t, x, pacman=pacman):
+                    speed, rotation = x
+                    dt = 0.001
+
+                    # Pacman turns and moves forward based on obstacles and food availability
+                    pacman.turn(rotation * dt * pacman.rotate)
+                    pacman.go_forward(speed * dt * pacman.speed)
+
+                    # If pacman moves into a cell containing food...
+                    if pacman.cell.food:
+                        ghostC = []
                         for g in self.enemies:
-                            g.color = "white"
-                            g.state = "running"
-                        # After 5 seconds, the revertColor method is called
-                        tx = Timer(5.0, revertColor)
-                        tx.start()
-                    # Adds to the score and updates ghosts
-                    self.pacman.score += 1
-                    self.pacman.cell.food = False
-                    if self.completion_time is None and self.pacman.score == total:
-                        self.completion_time = t
+                            ghostC.append(g.color)
+                        # If pacman eats a super food...
+                        if(pacman.cell.state=="super"):
+                            # Put this method outside the if statement
+                            def revertColor():
+                                # Turns ghosts to their orginal state
+                                ghost.color = "red"
+                                ghost.state = "seeking"
+                                # Sets the pacman's state to "eating"
+                                self.pacman.state = "eating"
+                                i=0
+                                for g in self.enemies:
+                                    g.color = ghostC[i]
+                                    i+=1
+                            # Ghosts turn white when pacman eats a super food
+                            self.ghost.color = "white"
+                            self.ghost.state = "running"
+                            # Pacman's state becomes "seeking"
+                            pacman.state = "seeking"
+                            for g in self.enemies:
+                                g.color = "white"
+                                g.state = "running"
+                            # After 5 seconds, the revertColor method is called
+                            tx = Timer(5.0, revertColor)
+                            tx.start()
+                        # Adds to the score and updates ghosts
+                        pacman.score += 1
+                        pacman.cell.food = False
 
-                for ghost in self.enemies:
-                    self.update_ghost(ghost)
+                # Sets up the node for the obstacles (this factors in angles and distances towards respective obstacles)
+                def obstacles(t, pacman=pacman):
+                    angles = np.linspace(-1, 1, 5) + pacman.dir
+                    angles = angles % self.world.directions
+                    pacman.obstacle_distances = [pacman.detect(d, max_distance=4*2)[0] for d in angles]
+                    return pacman.obstacle_distances
 
-            self.move = nengo.Node(move, size_in=2)
+                # Sets up the node for the food (factors in amount of food in an area and its relative strength, distance, etc)
+                def detect_food(t, pacman=pacman):
+                    x = 0
+                    y = 0
+
+                    # Runs through the total number of cells in the world and calculates strength and relative distance for each one
+                    for cell in self.world.find_cells(lambda cell:cell.food):
+                        dir = pacman.get_direction_to(cell)
+                        dist = pacman.get_distance_to(cell)
+                        rel_dir = dir - pacman.dir
+                        if dist > 5: continue
+                        if dist>=0.05:
+                            strength = 1.0 / dist
+                        else: strength = 20
+
+                        dx = np.sin(rel_dir * np.pi / 2) * strength
+                        dy = np.cos(rel_dir * np.pi / 2) * strength
+
+                        x += dx
+                        y += dy
+                    return x, y
+
+                # Sets up the node for the enemies (factors in number of enemies in an area and their relative strength, distance, etc.)
+                def detect_enemy(t, pacman=pacman):
+                    x = 0
+                    y = 0
+
+                    # Runs through the total number of ghosts in the world and calculates strength and relative distance for each one
+                    for ghost in self.enemies:
+                        dir = pacman.get_direction_to(ghost)
+                        dist = pacman.get_distance_to(ghost)
+                        rel_dir = dir - pacman.dir
+                        if dist < 0.001:
+                            dist = 0.001
+                        strength = 1.0 / dist
+
+                        dx = np.sin(rel_dir * np.pi / 2) * strength
+                        dy = np.cos(rel_dir * np.pi / 2) * strength
+
+                        x += dx
+                        y += dy
+                    return x, y
+
+
+
+                with pacnet:
+                    pacnet.move = nengo.Node(move, size_in=2)
+                    pacnet.obstacles = nengo.Node(obstacles)
+                    pacnet.detect_food = nengo.Node(detect_food)
+                    pacnet.detect_enemy = nengo.Node(detect_enemy)
 
             # The score is kept track of using an html rendering
             def score(t):
-                html = '<h1>%d / %d</h1>' % (self.pacman.score, total)
+                for ghost in self.enemies:
+                    self.update_ghost(ghost)
+                total_score = sum([pacman.score for pacman in self.pacmen])
+                if self.completion_time is None and total_score == total:
+                    self.completion_time = t
+                scores = ':'.join(['%d' % pacman.score for pacman in self.pacmen])
+
+                html = '<h1>%s / %d</h1>' % (scores, total)
                 if self.completion_time is not None:
                     html += 'Completed in<br/>%1.3f seconds' % self.completion_time
                 else:
@@ -227,56 +290,7 @@ class PacmanWorld(nengo.Network):
                 score._nengo_html_ = html
             self.score = nengo.Node(score)
 
-            # Sets up the node for the obstacles (this factors in angles and distances towards respective obstacles)
-            def obstacles(t):
-                angles = np.linspace(-1, 1, 5) + self.pacman.dir
-                angles = angles % self.world.directions
-                self.pacman.obstacle_distances = [self.pacman.detect(d, max_distance=4*2)[0] for d in angles]
-                return self.pacman.obstacle_distances
-            self.obstacles = nengo.Node(obstacles)
 
-            # Sets up the node for the food (factors in amount of food in an area and its relative strength, distance, etc)
-            def detect_food(t):
-                x = 0
-                y = 0
-
-                # Runs through the total number of cells in the world and calculates strength and relative distance for each one
-                for cell in self.world.find_cells(lambda cell:cell.food):
-                    dir = self.pacman.get_direction_to(cell)
-                    dist = self.pacman.get_distance_to(cell)
-                    rel_dir = dir - self.pacman.dir
-                    if dist > 5: continue
-                    if dist>=0.05:
-                        strength = 1.0 / dist
-                    else: strength = 20
-
-                    dx = np.sin(rel_dir * np.pi / 2) * strength
-                    dy = np.cos(rel_dir * np.pi / 2) * strength
-
-                    x += dx
-                    y += dy
-                return x, y
-            self.detect_food = nengo.Node(detect_food)
-
-            # Sets up the node for the enemies (factors in number of enemies in an area and their relative strength, distance, etc.)
-            def detect_enemy(t):
-                x = 0
-                y = 0
-
-                # Runs through the total number of ghosts in the world and calculates strength and relative distance for each one
-                for ghost in self.enemies:
-                    dir = self.pacman.get_direction_to(ghost)
-                    dist = self.pacman.get_distance_to(ghost)
-                    rel_dir = dir - self.pacman.dir
-                    strength = 1.0 / dist
-
-                    dx = np.sin(rel_dir * np.pi / 2) * strength
-                    dy = np.cos(rel_dir * np.pi / 2) * strength
-
-                    x += dx
-                    y += dy
-                return x, y
-            self.detect_enemy = nengo.Node(detect_enemy)
 
     # Updates the ghost's position every 0.001 second
     def update_ghost(self, ghost):
@@ -290,7 +304,11 @@ class PacmanWorld(nengo.Network):
         ghost.turn((obstacle_distances[1]-obstacle_distances[3])*-2 * dt * self.ghost_rotate)
         ghost.go_forward((obstacle_distances[2]-0.5)*2*self.ghost_speed * dt)
 
-        target_dir = ghost.get_direction_to(self.pacman)
+        dirs = [ghost.get_direction_to(pacman) for pacman in self.pacmen]
+        dists = [ghost.get_distance_to(pacman) for pacman in self.pacmen]
+        closest = dists.index(min(dists))
+
+        target_dir = dirs[closest]
 
         # Factors in target distance and calls the turn and go_forward functions in that direction
 
@@ -301,12 +319,12 @@ class PacmanWorld(nengo.Network):
             while theta < -2: theta += 4
             ghost.turn(-theta * dt * self.ghost_rotate)
             ghost.go_forward(self.ghost_speed * dt)
-            if ghost.get_distance_to(self.pacman) < 1:
+            if dists[closest] < 1:
                 self.reset()
 
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
         if(ghost.state == "running"):
-            if ghost.get_distance_to(self.pacman) < 1:
+            if dists[closest] < 1:
                 ghost.state = "seeking"
                 starting = list(self.world.find_cells(lambda cell: cell.enemy_start))
                 if len(starting) == 0:
@@ -321,7 +339,8 @@ class PacmanWorld(nengo.Network):
 
     # Resets the pacman's position after it loses
     def reset(self):
-        self.pacman.score = 0
+        for pacman in self.pacmen:
+            pacman.score = 0
 
         # Runs through the rows in the world and reinializes cells
         for row in self.world.grid:
@@ -330,13 +349,14 @@ class PacmanWorld(nengo.Network):
                     cell.food = True
 
         # reinializes the starting position of the pacman
-        starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
-        if len(starting) == 0:
-            starting = list(self.world.find_cells(lambda cell: cell.food))
-        self.pacman.cell = random.choice(starting)
-        self.pacman.x = self.pacman.cell.x
-        self.pacman.y = self.pacman.cell.y
-        self.pacman.dir = 3
+        for pacman in self.pacmen:
+            starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
+            if len(starting) == 0:
+                starting = list(self.world.find_cells(lambda cell: cell.food))
+            pacman.cell = random.choice(starting)
+            pacman.x = pacman.cell.x
+            pacman.y = pacman.cell.y
+            pacman.dir = 3
 
         for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
             self.enemies[i].cell = cell
