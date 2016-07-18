@@ -174,6 +174,17 @@ class PacmanWorld(nengo.Network):
 
                 #Pacman's move function -- called every 0.001 second (set using dt)
                 def move(t, x, pacman=pacman):
+
+                    def revertColor():
+
+                        self.ghost.color = "red"
+                        self.ghost.state = "seeking"
+
+                        i=0
+                        for g in self.enemies:
+                            g.color = ghostC[i]
+                            i+=1
+
                     speed, rotation = x
                     dt = 0.001
 
@@ -186,31 +197,14 @@ class PacmanWorld(nengo.Network):
                         ghostC = []
                         for g in self.enemies:
                             ghostC.append(g.color)
-                        # If pacman eats a super food...
                         if(pacman.cell.state=="super"):
-                            # Put this method outside the if statement
-                            def revertColor():
-                                # Turns ghosts to their orginal state
-                                ghost.color = "red"
-                                ghost.state = "seeking"
-                                # Sets the pacman's state to "eating"
-                                self.pacman.state = "eating"
-                                i=0
-                                for g in self.enemies:
-                                    g.color = ghostC[i]
-                                    i+=1
-                            # Ghosts turn white when pacman eats a super food
                             self.ghost.color = "white"
                             self.ghost.state = "running"
-                            # Pacman's state becomes "seeking"
-                            pacman.state = "seeking"
                             for g in self.enemies:
                                 g.color = "white"
                                 g.state = "running"
-                            # After 5 seconds, the revertColor method is called
                             tx = Timer(5.0, revertColor)
                             tx.start()
-                        # Adds to the score and updates ghosts
                         pacman.score += 1
                         pacman.cell.food = False
 
@@ -264,8 +258,6 @@ class PacmanWorld(nengo.Network):
                         y += dy
                     return x, y
 
-
-
                 with pacnet:
                     pacnet.move = nengo.Node(move, size_in=2)
                     pacnet.obstacles = nengo.Node(obstacles)
@@ -290,8 +282,6 @@ class PacmanWorld(nengo.Network):
                 score._nengo_html_ = html
             self.score = nengo.Node(score)
 
-
-
     # Updates the ghost's position every 0.001 second
     def update_ghost(self, ghost):
         dt = 0.001
@@ -310,8 +300,6 @@ class PacmanWorld(nengo.Network):
 
         target_dir = dirs[closest]
 
-        # Factors in target distance and calls the turn and go_forward functions in that direction
-
         # If the ghost is in a seeking condition, then it is turning towards the pacman and going forward
         if(ghost.state == "seeking"):
             theta = ghost.dir - target_dir
@@ -325,12 +313,7 @@ class PacmanWorld(nengo.Network):
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
         if(ghost.state == "running"):
             if dists[closest] < 1:
-                ghost.state = "seeking"
-                starting = list(self.world.find_cells(lambda cell: cell.enemy_start))
-                if len(starting) == 0:
-                    starting = list(self.world.find_cells(lambda cell: cell.food))
-                ghost.cell = random.choice(starting)
-                print("Hit white ghost")
+                self.reset()
             theta = ghost.dir - target_dir
             while theta > 2: theta -= 4
             while theta < -2: theta += 4
