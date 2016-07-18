@@ -313,7 +313,12 @@ class PacmanWorld(nengo.Network):
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
         if(ghost.state == "running"):
             if dists[closest] < 1:
-                self.reset()
+                for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
+                    ghost.state = "seeking"
+                    ghost.cell = cell
+                    ghost.dir = 1
+                    ghost.x = cell.x
+                    ghost.y = cell.y
             theta = ghost.dir - target_dir
             while theta > 2: theta -= 4
             while theta < -2: theta += 4
