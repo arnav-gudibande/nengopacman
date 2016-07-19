@@ -16,8 +16,8 @@ mymap = maze.generateMaze(4, 10)
 
 with model:
 
-    pacman1 = body.Player("pacman", "eating", 2, "yellow", 70, 20)
-    pacman2 = body.Player("pacman", "eating", 2, "yellow", 70, 20)
+    pacman1 = body.Player("pacman", 1, 2, "yellow", 70, 20)
+    pacman2 = body.Player("pacman", 2, 2, "yellow", 70, 20)
 
     pacmen = [pacman1, pacman2]
     myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
