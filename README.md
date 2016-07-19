@@ -83,5 +83,5 @@ Note: Rows must be in multiples of 2 and columns in 10
 
 ### Acknowlegments
 
-[@tcstewar](https://github.com/tcstewar)
-[@arnav-gudibande](https://github.com/arnav-gudibande)
+[@arnav-gudibande](https://github.com/arnav-gudibande), [@tcstewar](https://github.com/tcstewar)
+
