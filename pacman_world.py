@@ -320,7 +320,6 @@ class PacmanWorld(nengo.Network):
             ghost.turn(-theta * dt * self.ghost_rotate)
             ghost.go_forward(self.ghost_speed * dt)
             if dists[closest] < 1.5:
-                print("hit colored ghost")
                 self.reset(closestID)
 
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
@@ -328,7 +327,6 @@ class PacmanWorld(nengo.Network):
             if dists[closest] < 1.5:
                 for pac in self.pacmen:
                     pac.score += 2
-                print("hit white ghost")
                 for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
                     ghost.cell = cell
                     ghost.dir = 1
