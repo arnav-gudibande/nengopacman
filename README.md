@@ -81,7 +81,10 @@ This makes pacman more sensitive to enemies
 
 Note: Rows must be in multiples of 2 and columns in 10
 
+### Usage
+
+When creating your own neural control network & algorithm to run the game, apply changes on the `myModel.py` using the framework provided. To run your version of pacman after completing `myModel.py`, simply run `nengo myModel.py` to execute the game.
+
 ### Acknowlegments
 
 [@arnav-gudibande](https://github.com/arnav-gudibande), [@tcstewar](https://github.com/tcstewar)
-
