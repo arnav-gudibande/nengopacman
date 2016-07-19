@@ -18,8 +18,9 @@ with model:
 
     pacman1 = body.Player("pacman", 1, 2, "yellow", 70, 20)
     pacman2 = body.Player("pacman", 2, 2, "yellow", 70, 20)
+    pacman3 = body.Player("pacman", 3, 2, "yellow", 70, 20)
 
-    pacmen = [pacman1, pacman2]
+    pacmen = [pacman1, pacman2, pacman3]
     myGhost = body.Player("ghost", "seeking", 2, "red", 5, 5)
     myGhost2 = body.Player("ghost", "seeking", 2, "green", 5, 5)
     myGhost3 = body.Player("ghost", "seeking", 2, "blue", 5, 5)

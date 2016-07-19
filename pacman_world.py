@@ -272,18 +272,13 @@ class PacmanWorld(nengo.Network):
                     self.update_ghost(ghost)
                 total_score = sum([pacman.score for pacman in self.pacmen])
 
-                if self.completion_time is None and total_score == total:
-                    self.completion_time = t
-                tab = 0
-                for pac in self.pacmen:
-                    tab+=pac.score
+                if total_score == total:
+                    self.reset(0, True)
+
                 scores = ':'.join(['%d' % pacman.score for pacman in self.pacmen])
 
                 html = '<h1>%s / %d</h1>' % (scores, total)
-                if self.completion_time is not None:
-                    html += 'Completed in<br/>%1.3f seconds' % self.completion_time
-                else:
-                    html += '%1.3f seconds' % t
+                html += '%1.3f seconds' % (t*10)
                 html = '<center>%s</center>' % html
                 score._nengo_html_ = html
             self.score = nengo.Node(score)
@@ -320,13 +315,11 @@ class PacmanWorld(nengo.Network):
             ghost.turn(-theta * dt * self.ghost_rotate)
             ghost.go_forward(self.ghost_speed * dt)
             if dists[closest] < 1.5:
-                self.reset(closestID)
+                self.reset(closestID, False)
 
         # If the ghost is in a running condition, then it is turning away from the pacman and going forward
         if(ghost.state == "running"):
             if dists[closest] < 1.5:
-                for pac in self.pacmen:
-                    pac.score += 2
                 for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
                     ghost.cell = cell
                     ghost.dir = 1
@@ -340,20 +333,21 @@ class PacmanWorld(nengo.Network):
             ghost.go_forward(self.ghost_speed * dt)
 
 
-    # Resets the pacman's position after it loses
-    def reset(self, pacID):
-        for pacman in self.pacmen:
-            pacman.score = 0
+    # Resets the pacman's position after it gets eaten
+    def reset(self, pacID, worldReset):
 
-        # Runs through the rows in the world and reinializes cells
-        for row in self.world.grid:
-            for cell in row:
-                if not (cell.wall or cell.pacman_start or cell.enemy_start) and (cell.state == "food" or cell.state == "super"):
-                    cell.food = True
+        if(worldReset==True):
+            for pacman in self.pacmen:
+                pacman.score = 0
 
-        # reinializes the starting position of the pacman
-        for pacman in self.pacmen:
-            if pacman.state == pacID:
+            # Runs through the rows in the world and reinializes cells
+            for row in self.world.grid:
+                for cell in row:
+                    if not (cell.wall or cell.pacman_start or cell.enemy_start) and (cell.state == "food" or cell.state == "super"):
+                        cell.food = True
+
+            # reinializes the starting position of the pacman
+            for pacman in self.pacmen:
                 starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
                 if len(starting) == 0:
                     starting = list(self.world.find_cells(lambda cell: cell.food))
@@ -361,9 +355,21 @@ class PacmanWorld(nengo.Network):
                 pacman.x = pacman.cell.x
                 pacman.y = pacman.cell.y
                 pacman.dir = 3
-        #
-        # for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
-        #     self.enemies[i].cell = cell
-        #     self.enemies[i].dir = 1
-        #     self.enemies[i].x = cell.x
-        #     self.enemies[i].y = cell.y
+
+            for i, cell in enumerate(self.world.find_cells(lambda cell: cell.enemy_start)):
+                self.enemies[i].cell = cell
+                self.enemies[i].dir = 1
+                self.enemies[i].x = cell.x
+                self.enemies[i].y = cell.y
+
+        if(worldReset==False):
+
+            for pacman in self.pacmen:
+                if pacman.state == pacID:
+                    starting = list(self.world.find_cells(lambda cell: cell.pacman_start))
+                    if len(starting) == 0:
+                        starting = list(self.world.find_cells(lambda cell: cell.food))
+                    pacman.cell = random.choice(starting)
+                    pacman.x = pacman.cell.x
+                    pacman.y = pacman.cell.y
+                    pacman.dir = 3
