@@ -12,7 +12,6 @@ Next, clone/fork this project from Github and run it from a terminal.
 
  `nengo pacman.py`
  
----
 
 ## Neural Network Architecture
 
@@ -20,6 +19,9 @@ Next, clone/fork this project from Github and run it from a terminal.
 
 The game is organized into the pacman world and each individual instance of pacman.
 
+The world owns the game environment, score and sensor data for each pacman. The world collects information on distance from wall to pacman, food availiablity, enemy distance, etc. Using its respective nodes, it sends this information to the pacman's ensembles.
+
+Each pacman owns its own instance of food, enemy, obstacles and move nodes.
 
 
 
