@@ -23,8 +23,7 @@ The game is organized into the pacman world and each individual instance of pacm
 
 The world owns the game environment, score and sensor data for each pacman. The world collects information on distance from wall to pacman, food availiablity, enemy distance, etc. Using its respective nodes, it sends this information to the pacman's ensembles.
 
-Each pacman owns its own instance of food, enemy, obstacles and move nodes.
-
+The pacman ensembles, consisting of the food, enemy and obstacles, apply functions on the incoming data and pass it on to the move ensemble. Finally, the move ensemble aggregates the sensory input and determines the speed and direction for the pacman to move in, thereby continuing the game.
 
 
 ## Examples
@@ -81,3 +80,8 @@ This makes pacman more sensitive to enemies
 `mymap = maze.generateMaze(8,20)`
 
 Note: Rows must be in multiples of 2 and columns in 10
+
+### Acknowlegments
+
+[@tcstewar](https://github.com/tcstewar)
+[@arnav-gudibande](https://github.com/arnav-gudibande)
