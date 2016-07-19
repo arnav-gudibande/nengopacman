@@ -16,6 +16,8 @@ Next, clone/fork this project from Github and run it from a terminal.
 
 ## Neural Network Architecture
 
+<img width="1358" alt="screen shot 2016-07-19 at 1 55 27 pm" src="https://cloud.githubusercontent.com/assets/15108659/16966338/fad4e19c-4db8-11e6-9fc4-72757f9dcb98.png">
+
 The game is organized into the pacman world and each individual instance of pacman.
 
 
