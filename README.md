@@ -21,10 +21,11 @@ Next, clone/fork this project from Github and run it from a terminal.
 
 The game is organized into the pacman world and each individual instance of pacman.
 
-The world owns the game environment, score and sensor data for each pacman. The world collects information on distance from wall to pacman, food availiablity, enemy distance, etc. Using its respective nodes, it sends this information to the pacman's ensembles.
+The world owns the game environment, score and sensor data for each pacman. Additonally, the world collects information on distance from wall to pacman, food availiablity, enemy distance, etc. Using its respective nodes, it sends this information to the pacman's ensembles.
 
 The pacman ensembles, consisting of the food, enemy and obstacles, apply functions on the incoming data and pass it on to the move ensemble. Finally, the move ensemble aggregates the sensory input and determines the speed and direction for the pacman to move in, thereby continuing the game.
 
+The control algorithm for the movement of the pacman lies in the functions that are applied by the food, obstacles and enemy ensembles. Their sensitivity, strength and functionality can be edited by changing the transform, nuerons, and synapse parameters.
 
 ## Examples
 
