@@ -1,6 +1,6 @@
 import numpy as np
 
-def generateMaze(num_rows, num_cols, num_ghosts=3, seed=None, num_passage=2):
+def generateMaze(num_rows, num_cols, num_ghosts=3, seed=None, num_passage=6):
 
     rng = np.random.RandomState(seed=seed)
 
