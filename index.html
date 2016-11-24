@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Nengopacman by arnav-gudibande</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Nengopacman</h1>
+        <h2>Pacman AI with the Nengo Neural Engineering Framework</h2>
+        <a href="https://github.com/arnav-gudibande/nengopacman" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="nengo-pacman" class="anchor" href="#nengo-pacman" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Nengo Pacman</h1>
+
+<p><img src="https://cloud.githubusercontent.com/assets/15108659/16967655/ecd43682-4dbe-11e6-9c5c-04300d215cc0.gif" alt="pacman"></p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>This project is compatible with Python 2.7.x and has dependencies on Nengo and Nengo GUI. Ensure you have installed both before running the project.</p>
+
+<ul>
+<li>Install <a href="https://github.com/nengo/nengo">nengo</a>
+</li>
+<li>Use pip to install the nengo gui
+
+<ul>
+<li><code>pip install nengo_gui</code></li>
+</ul>
+</li>
+</ul>
+
+<p>Next, clone/fork this project from Github and run it from a terminal.</p>
+
+<p><code>nengo pacman.py</code></p>
+
+<h2>
+<a id="neural-network-architecture" class="anchor" href="#neural-network-architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Neural Network Architecture</h2>
+
+<p><img width="1358" alt="screen shot 2016-07-19 at 1 55 27 pm" src="https://cloud.githubusercontent.com/assets/15108659/16966338/fad4e19c-4db8-11e6-9fc4-72757f9dcb98.png"></p>
+
+<p>The game is organized into the pacman world and each individual instance of pacman.</p>
+
+<p>The world owns the game environment, score and sensor data for each pacman. Additionally, the world collects information on distance from wall to pacman, food availability, enemy distance, etc. Using its respective nodes, it sends this information to the pacman's ensembles.</p>
+
+<p>The pacman ensembles, consisting of the food, enemy and obstacles, apply functions on the incoming data and pass it on to the move ensemble. Finally, the move ensemble aggregates the sensory input and determines the speed and direction for the pacman to move in, thereby continuing the game.</p>
+
+<p>The control algorithm for the movement of the pacman lies in the functions that are applied by the food, obstacles and enemy ensembles. Their sensitivity, strength and functionality can be edited by changing the transform, nuerons, and synapse parameters.</p>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h2>
+
+<p>The following examples demonstrate features of the API</p>
+
+<h3>
+<a id="add-a-pacman-to-the-game" class="anchor" href="#add-a-pacman-to-the-game" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Add a pacman to the game</h3>
+
+<p>First, create a new instance of pacman in <code>pacman.py</code>:</p>
+
+<p><code>myPacman = body.Player("pacman", 4, 2, "yellow", 70, 20)</code></p>
+
+<p>The paramaters passed into the pacman signify (respectively):</p>
+
+<ul>
+<li>Type of player in the world</li>
+<li>ID of player (n number)</li>
+<li>Size of player</li>
+<li>Color of player</li>
+<li>Linear speed of player</li>
+<li>Rotational speed of player</li>
+</ul>
+
+<p>Now, add the pacman to the game:</p>
+
+<p><code>pacmen.append(myPacman)</code></p>
+
+<h3>
+<a id="add-a-ghost-to-the-game" class="anchor" href="#add-a-ghost-to-the-game" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Add a ghost to the game</h3>
+
+<p>Create a new instance of a ghost:</p>
+
+<p><code>myGhost4 = body.Player("ghost", "seeking", 2, "orange", 5, 5)</code></p>
+
+<p>The paramaters passed into the ghost signify (respectively):</p>
+
+<ul>
+<li>Type of player in the world</li>
+<li>State of player (either seeking or running away)</li>
+<li>Size of player</li>
+<li>Color of player</li>
+<li>Linear speed of player</li>
+<li>Rotational speed of player</li>
+</ul>
+
+<h3>
+<a id="edit-sensory-input" class="anchor" href="#edit-sensory-input" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Edit sensory input</h3>
+
+<p>In <code>pacman.py</code>, simply edit transform parameters to adjust pacman's sensory input</p>
+
+<p><code>nengo.Connection(food[0], move[1], transform = 3)</code></p>
+
+<p>This adjusts the way pacman turns toward the food</p>
+
+<p><code>nengo.Connection(pacnet.obstacles[[1,2,3]], obstacles, transform = 1, synapse = 0.</code></p>
+
+<p>This makes pacman more sensitive to enemies</p>
+
+<h3>
+<a id="change-maze-dimensions" class="anchor" href="#change-maze-dimensions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Change maze dimensions</h3>
+
+<p><code>mymap = maze.generateMaze(8,20)</code></p>
+
+<p>Note: Rows must be in multiples of 2 and columns in 10</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>When creating your own neural control network &amp; algorithm to run the game, apply changes on the <code>myModel.py</code> using the framework provided. To run your version of pacman after completing <code>myModel.py</code>, simply run <code>nengo myModel.py</code> to execute the game.</p>
+
+<h2>
+<a id="acknowlegments" class="anchor" href="#acknowlegments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Acknowlegments</h2>
+
+<p><a href="https://github.com/arnav-gudibande">@arnav-gudibande</a>, <a href="https://github.com/tcstewar">@tcstewar</a></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/arnav-gudibande/nengopacman/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/arnav-gudibande/nengopacman/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/arnav-gudibande/nengopacman"></a> is maintained by <a href="https://github.com/arnav-gudibande">arnav-gudibande</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
