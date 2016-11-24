@@ -1,4 +1,4 @@
-# Nengo Pacman Documentation
+# Nengo Pacman
 
 ![pacman](https://cloud.githubusercontent.com/assets/15108659/16967655/ecd43682-4dbe-11e6-9c5c-04300d215cc0.gif)
 
